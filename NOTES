@@ -1,0 +1,30 @@
+### Notes: Parseq research:
+
+I really liked Douglas Crockfords parseq library, I might implement some of the Callback methods internally as parseq 
+equivalents in the future and expose the parseq here as well. Currenly all Callback methods are already well optimized 
+but exposing parseq API would be cool.
+
+- Separation of required/optional in parseq is interesting for errors -> parseq is lower level(might need slightly more)
+- Promise abstraction with timeout and retry metadata exposed publicly so I can use it inside callback.nvim
+
+On parseq no differentiation between error and cancellation concurrency wise.
+
+parseq.fallback fails if none returns success. parseq. fallback early returns if any succeeds -> Callback.find 
+
+time_limit works well with required_array, optional_array separation. This can be configured with time_option 
+-> introduces need for func wrapping as this is not intuitive but interesting and minimal.
+
+that.each_series works means all tasks are optional, throttle is 1
+
+parseq.race IS NOT async.race or Promise.race but it is .try_each, (it keeps going on error)
+
+In parseq throttle 0 means infinity(keep moving), in "async" npm lib, limit 0 means skip it. 
+parseq.sequence is async.waterfall.
+
+Possible new Callback methods:
+
+Callback.all_settled
+Callback.to_promise
+
+- Async{} instance that is modelled after Promise{} instance
+
