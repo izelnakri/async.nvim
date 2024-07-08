@@ -1,9 +1,9 @@
 ## Callback.nvim - "async" npm library port for lua
 
 Callback.nvim provides methods to deal with callback based, higher-order asynchronous or synchronous functions. It also
-provides ways to early return computations when occured or certain cancellation cases provided. Additionally allows
-being selective how or which error(s) should be used in a program. This is particularly useful when dealing with lua
-in neovim, either to configure your neovim environment or the build neovim plugins.
+provides ways to early return computations when occured or when certain cancellation cases provided. Additionally allows
+being selective on how or which error(s) should be used in a program. This is particularly useful when dealing with lua
+in neovim, either when configuring your neovim environment or building neovim plugins.
 
 In other words, Callback.nvim is a utility library to handle asynchronous functions where the asynchronous operation
 isn't wrapped in an asynchronous data structure like `Promise` or `Future`, and where functions need to be controlled
@@ -12,7 +12,11 @@ when they could be run asynchronously.
 This library is inspired by the [async](https://www.npmjs.com/package/async) npm library, however it is more minimal 
 and the api adjusted for lua specific conventions/differences compared to JavaScript. The test suite is initially ported 
 from [async](https://www.npmjs.com/package/async) library, then I've enhanced it based on the needed adjustments or 
-found missing cases. 
+found missing cases. The core algorithm is ported from async npm library, it is imperative but it is very optimized, 
+correct and memory efficient, handles edge cases like stack overflow on large collections well.
+
+In future I might build a JS Promise-like data structure so Callback methods can be awaited or aborted from outside or
+composed with other Callback methods. This lua plugin is already very powerful & useful.
 
 ## Installation
 
