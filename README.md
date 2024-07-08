@@ -14,6 +14,26 @@ and the api adjusted for lua specific conventions/differences compared to JavaSc
 from [async](https://www.npmjs.com/package/async) library, then I've enhanced it based on the needed adjustments or 
 found missing cases. 
 
+## Installation
+
+**Lua**
+
+```lua
+-- using lazy.nvim
+{
+  'izelnakri/callback.nvim',
+  config = function()
+    -- If you want to expose it globally:
+    Callback = require("callback")
+
+    -- or a dummy usage example:
+    Callback.map({ '/home', '/usr' }, vim.uv.fs_stat, function(err, result) 
+      vim.print(vim.inspect(result)) 
+    end)
+  end
+}
+```
+
 ## All Callback methods provided by this library:
 
 - `Callback.any`

@@ -57,10 +57,9 @@ Callback.times_limit = times_limit
 Callback.times_series = times_series
 Callback.try_each = try_each
 Callback.waterfall = waterfall
--- TODO: Add find
 
-function Callback.setup(options)
-  vim.print("Callback.setup called")
+function Callback.setup()
+  return Callback
 end
 
 return Callback
