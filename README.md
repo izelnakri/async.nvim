@@ -14,22 +14,33 @@ and the api adjusted for lua specific conventions/differences compared to JavaSc
 from [async](https://www.npmjs.com/package/async) library, then I've enhanced it based on the needed adjustments or 
 found missing cases. 
 
-## Callback methods that can early return when not cancelled:
+## All Callback methods provided by this library:
 
+- `Callback.any`
+- `Callback.any_limit`
+- `Callback.any_series`
+- `Callback.build_iteratee`
+- `Callback.each`
+- `Callback.each_limit`
+- `Callback.each_series`
+- `Callback.filter`
+- `Callback.filter_limit`
+- `Callback.filter_series`
+- `Callback.forever`
 - `Callback.map`
-- `Callback.map_series`
 - `Callback.map_limit`
+- `Callback.map_series`
+- `Callback.parallel`
+- `Callback.parallel_limit`
 - `Callback.race`
+- `Callback.reduce`
+- `Callback.reduce_right`
 - `Callback.series`
+- `Callback.times`
+- `Callback.times_limit`
+- `Callback.times_series`
 - `Callback.try_each`
-
-## Callback methods that *DO NOT* early return on error:
-
-- `Callback.each` - - Error object is the last error
-- `Callback.each_series` - Error object is the last error. !! Check if this early returns on error, seems like its only Callback.series(which is parseq.fallback)
-- `Callback.reduce` - Unless error provided on callback/next
-- `Callback.waterfall` - Error object is the last error
-- `Callback.parallel` - Eror object is the last error
+- `Callback.waterfall`
 
 ## Async Control methods:
 
@@ -37,13 +48,17 @@ Async control methods mean first argument expects a list or object of async func
 expect list or object of values while async control methods expect list or object of async functions to *execute* 
 without iteratee function as 2nd argument.
 
-- `Callback.waterfall` -> runs `Callback.each_series` on the provided async function tasks, **errors dont early return**
-- `Callback.parallel` -> runs `Callback.series` on the provided async function tasks, **errors dont early return**
-- `Callback.series` -> runs `Callback.map_series` on the provided async function tasks, thus **error can early return**
-- `Callback.race` -> runs `Callback.map` on the provided async function tasks, thus **error can early return**
+- `Callback.waterfall` -> runs `Callback.each_series` on the provided async function tasks
+- `Callback.parallel` -> runs `Callback.map` on the provided async function tasks
+- `Callback.series` -> runs `Callback.map_series` on the provided async function tasks
+- `Callback.race` -> runs all tasks passes the first task that calls its callback
+- `Callback.try_each` -> runs all tasks passes the first successful task that calls its callback, thus **errors dont early return**
+- `Callback.forever` -> runs all tasks passes recursively until an error or result provided in the tasks callback
 
 
-If Callback module was a JS Promise standard library module, their equivalent would be:
+In the docs when you see "Errors may early return", it means errors can stop the task iteration, however no function actually gets suspended.
+
+If Callback module methods logical equivalents in the JS Promise standard library are:
 
 - [Promise.all](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) => `Callback.parallel`
 - [Promise.allSettled](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled) => Doesnt exist, because parallel funcs early return on first error
