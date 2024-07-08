@@ -1,6 +1,6 @@
 ## Callback.nvim - "async" npm library port for lua
 
-Callback.nvim provides methods to deal with callback/higher-order based asynchronous or synchronous functions. It also
+Callback.nvim provides methods to deal with callback based, higher-order asynchronous or synchronous functions. It also
 provides ways to early return computations when occured or certain cancellation cases provided. Additionally allows
 being selective how or which error(s) should be used in a program. This is particularly useful when dealing with lua
 in neovim, either to configure your neovim environment or the build neovim plugins.

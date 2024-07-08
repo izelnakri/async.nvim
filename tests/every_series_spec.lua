@@ -1,0 +1,91 @@
+local Timers = require("callback.utils.timers")
+local Callback = require("callback")
+local wait = require("tests.utils.wait")
+
+describe("Callback.every_series", function()
+  after_each(function()
+    wait(5)
+  end)
+
+  it("works for result true", function()
+    Callback.every_series({ 3, 1, 2 }, function(x, callback)
+      Timers.set_timeout(function()
+        callback(nil, x >= 1)
+      end)
+    end, function(err, result)
+      assert.are.equal(err, nil)
+      assert.are.equal(result, true)
+    end)
+  end)
+
+  it("works for result false", function()
+    Callback.every_series({ "c", "a", "b" }, function(x, callback)
+      Timers.set_timeout(function()
+        callback(nil, x == "a")
+      end)
+    end, function(err, result)
+      assert.are.equal(err, nil)
+      assert.are.equal(result, false)
+    end)
+  end)
+
+  it("can early return", function()
+    local calls = 0
+
+    Callback.every_series({ "f", "e", "d", "c", "a", "b" }, function(x, callback, index)
+      calls = calls + 1
+      callback(nil, index < 4)
+    end, function(err, result)
+      assert.are.equal(err, nil)
+      assert.are.equal(result, false)
+      assert.are.equal(calls, 4)
+    end)
+  end)
+
+  it("short circuit", function()
+    local call_order = {}
+
+    Callback.every_series({ "a", "b", "c", "d", "e", "f" }, function(x, callback, index)
+      Timers.set_timeout(function()
+        table.insert(call_order, x)
+        callback(nil, index < 3)
+      end, index * 15)
+    end, function(err, result)
+      table.insert(call_order, "callback")
+      assert.equal(err, nil)
+      assert.equal(result, false)
+    end)
+
+    wait(350, function()
+      assert.are.same(call_order, { "a", "b", "c", "callback" })
+    end)
+  end)
+
+  it("error", function()
+    Callback.every_series({ "a", "b", "c", "d", "e" }, function(_, callback)
+      Timers.set_timeout(function()
+        callback("error")
+      end)
+    end, function(err, result)
+      assert.are.equal(err, "error")
+      assert.are.equal(result, nil)
+    end)
+  end)
+
+  it("canceled", function()
+    local call_order = {}
+    Callback.every_series({ "a", "b", "c", "d", "e" }, function(x, callback)
+      table.insert(call_order, x)
+      if x == "b" then
+        return callback(false, true)
+      end
+      callback(nil, true)
+    end, function()
+      assert.True(false, "should not get here")
+    end)
+
+    wait(0, function()
+      assert.are.same(call_order, { "a", "b" })
+    end)
+  end)
+end)
