@@ -10,7 +10,7 @@ return function(tasks, callback)
   local final_error = nil
   local result
 
-  return each_series(tasks, function(index, task, task_callback)
+  return each_series(tasks, function(task, task_callback)
     task(function(...)
       local arguments = { ... }
       local err = table.remove(arguments, 1)

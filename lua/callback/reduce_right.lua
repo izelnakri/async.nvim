@@ -17,7 +17,7 @@ return function(collection, memo, iteratee, result_callback)
 
   local is_list = vim.isarray(collection)
   local target_collection = (is_list and vim.iter(collection):rev():totable()) or collection
-  return each_limit(1, target_collection, function(left, right, iterator_callback)
+  return each_limit(1, target_collection, function(right, iterator_callback, left)
     local target_left = (function()
       if is_list then
         return #collection - left + 1

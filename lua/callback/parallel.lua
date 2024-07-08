@@ -29,7 +29,7 @@ return function(tasks, result_callback)
 
   local results = {}
 
-  return each_limit(math.huge, tasks, function(key, task, task_callback)
+  return each_limit(math.huge, tasks, function(task, task_callback, key)
     task(function(...)
       local arguments = { ... }
       local err = table.remove(arguments, 1)

@@ -15,7 +15,7 @@ return function(limit, collection, iteratee, callback)
       end
 
       iterator_callback(err)
-    end, left)
+    end, left, collection)
   end, function(err)
     if err then
       return callback(err)

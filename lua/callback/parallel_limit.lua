@@ -33,7 +33,7 @@ return function(tasks, limit, result_callback)
 
   local results = {}
 
-  return each_limit(limit, tasks, function(key, task, task_callback)
+  return each_limit(limit, tasks, function(task, task_callback, key)
     task(function(...)
       local arguments = { ... }
       local err = table.remove(arguments, 1)

@@ -6,12 +6,12 @@ return function(limit, collection, iteratee, callback)
   end
 
   local result = {}
-  return each_limit(limit, collection, function(left, right, iterator_callback)
-    iteratee(left, right, function(err, value)
+  return each_limit(limit, collection, function(right, iterator_callback, left)
+    iteratee(right, function(err, value)
       table.insert(result, value)
 
       iterator_callback(err)
-    end)
+    end, left, collection)
   end, function(err)
     if err then
       return callback(err, result)
