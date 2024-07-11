@@ -38,12 +38,17 @@ composed with other Callback methods. This lua plugin is already very powerful &
 }
 ```
 
+iterator = (value, callback, index, collection) => {}
+task = (callback) | (...params, callback)
+callback = (err, result) => {}
+
 ## All Callback methods provided by this library:
 
 - `Callback.any`
 - `Callback.any_limit`
 - `Callback.any_series`
-- `Callback.build_iteratee`
+- `Callback.apply`
+- `Callback.build(syncFunc) -> syncFuncWithCallback`
 - `Callback.each`
 - `Callback.each_limit`
 - `Callback.each_series`
@@ -59,12 +64,20 @@ composed with other Callback methods. This lua plugin is already very powerful &
 - `Callback.race`
 - `Callback.reduce`
 - `Callback.reduce_right`
+- `Callback.resolve`
+- `Callback.run`
 - `Callback.series`
 - `Callback.times`
 - `Callback.times_limit`
 - `Callback.times_series`
 - `Callback.try_each`
 - `Callback.waterfall`
+
+## Primitive types
+
+- callback: `function(err, result) end | function(...params, err, result) end`
+- task: `function(callback) end | function(...params, callback) end`
+- iterator = `function(value: any, callback: callback, index: number, collection: any[]) end`
 
 ## Async Control methods:
 
