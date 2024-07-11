@@ -1,5 +1,5 @@
----@param sync_func fun(...) Makes a synchronous function asynchronous without calling it, optionally applies parameters
----@return fun(..., callback: fun) Returns a callback shaped asynchronous function. In future also returns promise
+---@param sync_func fun(...) Makes a synchronous function asynchronous(with a callback) without calling it, optionally you can apply parameters. For error case specifications make them error(any, 0)
+---@return fun(..., callback: fun) callback Returns a callback shaped asynchronous function. In future also returns promise
 return function(sync_func, ...)
   local provided_arguments = { ... }
 
@@ -10,8 +10,6 @@ return function(sync_func, ...)
     for _, value in pairs(provided_arguments) do
       arguments_on_call[#arguments_on_call + 1] = value
     end
-    vim.print("arguments_on_call is:")
-    vim.print(vim.inspect(arguments_on_call))
 
     local success, result_or_error = pcall(sync_func, unpack(arguments_on_call))
 
