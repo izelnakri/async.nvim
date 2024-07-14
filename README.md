@@ -74,9 +74,10 @@ composed with other Callback methods. This lua plugin is already very powerful &
 
 ## Primitive types
 
-- callback: `function(err, result) end | function(...params, err, result) end`
-- task: `function(callback) end | function(...params, callback) end`
-- iterator = `function(value: any, callback: callback, index: number, collection: any[]) end`
+- **callback**: `function(err, result) end | function(...params, err, result) end`
+- **task**: `function(callback) end | function(...params, callback) end`
+- **iterator**: `function(value: any, callback: callback, index: number, collection: any[]) end`
+- **task_operation_list**: `{ "keyOne", "keyTwo", function() end }` => A list: always ends with a function(last task).
 
 ## Async Control methods:
 
@@ -120,7 +121,8 @@ end, function(err, results)
   assert.are.same(results, { null, null, null }) -- NOTE: Here we use null objects instead of nil
 end)
 
-Callback.auto({
+-- NOTE: This API doesn't exist yet, it will be an extension/superset of Callback.auto API:
+Callback.hash({
   name = "Izel",
   last_name = nil,
   full_name = { "name", "last_name", function(results, callback)
@@ -148,6 +150,11 @@ end)
 ```
 
 ## Future notes:
+
+Coming soon: `Callback.all`, `Callback.all_settled`, `Callback.hash`, `Callback.hash_settled` APIs & Promise API/return 
+functionality. `_settled` waits for all tasks to settle before running result callback. These methods are different 
+from all other methods such that they can receive *any* values in lua, instead of just tasks, or task_operation_lists:
+`all`, `all_settled`, `hash`, `hash_settles` is a higher level API than other `Callback` methods because of this.
 
 Today `Callback.queue` and `Callback.cargo` functions are NOT implemented. 
 
