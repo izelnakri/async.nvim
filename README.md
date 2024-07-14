@@ -38,17 +38,15 @@ composed with other Callback methods. This lua plugin is already very powerful &
 }
 ```
 
-iterator = (value, callback, index, collection) => {}
-task = (callback) | (...params, callback)
-callback = (err, result) => {}
-
 ## All Callback methods provided by this library:
 
 - `Callback.any`
 - `Callback.any_limit`
 - `Callback.any_series`
 - `Callback.apply`
+- `Callback.auto`
 - `Callback.build(syncFunc) -> syncFuncWithCallback`
+- `Callback.build_task(syncFunc, ...)`
 - `Callback.each`
 - `Callback.each_limit`
 - `Callback.each_series`
@@ -56,6 +54,7 @@ callback = (err, result) => {}
 - `Callback.filter_limit`
 - `Callback.filter_series`
 - `Callback.forever`
+- `Callback.log`
 - `Callback.map`
 - `Callback.map_limit`
 - `Callback.map_series`
@@ -104,3 +103,60 @@ If Callback module methods logical equivalents in the JS Promise standard librar
 - [Promise.reject](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject) => `callback(result)`
 - [Promise.resolve](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve) => `callback(nil, value)`
 - [Promise.withResolvers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve) => `function(err, callback) return callback(err, result) end`
+
+## Null type
+
+In Lua `nil` value ommits/removes the key value pair from a table(as in list and object). This makes the list length
+and objects behave unpredictably compared to most other programming languages. In order to eliminate this confusion
+and make lists lengths predictable, this library exposes a `null` immutable object that you can exports to check against
+your tests:
+
+```lua
+local null = require("callback.types.null")
+
+Callback.map({ 'a', 'b', 'c' }, function(element)
+  return callback()
+end, function(err, results)
+  assert.are.same(results, { null, null, null }) -- NOTE: Here we use null objects instead of nil
+end)
+
+Callback.auto({
+  name = "Izel",
+  last_name = nil,
+  full_name = { "name", "last_name", function(results, callback)
+    if (results.last_name == null) then
+      return callback(nil, results.name)
+    end
+
+    return callback(nil, results.name .. results.last_name)
+  end},
+  other_details = { "full_name", function(results, callback)
+    return callback()
+  end}
+}, function(err, result)
+  assert.are.same(result, {
+    name = "Izel",
+    last_name = null,
+    full_name = "Izel",
+    other_details = null
+  })
+
+  type(null) == "table"
+  null.something = 123 -- NOTE: This will throw error since null objects are immutable!
+end)
+
+```
+
+## Future notes:
+
+Today `Callback.queue` and `Callback.cargo` functions are NOT implemented. 
+
+Cargo: passes array of tasks to a worker at once, could optionally repeat when the worker is finished.
+CargoQueue: runs queue concurrently on workers in parallel.
+Queue: passes one task at a time to a single worker.
+
+These functions provide no persistence(for process restarts/kills) and their behavior might be achieved without needimg 
+them, resorting to existing methods here with a distributed store like RabbitMQ or PostgreSQL(when set up clustered).
+
+Promise(function(resolve, reject)) -> **reject function could also be a callback shaped?**, whereas reject(nil) calls resolve and reject(false) cancelles and reject(nil, smt) resolves smt?
+resolve function could be a curry of `function(val) return callback(nil, val) end`
