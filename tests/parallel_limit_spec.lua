@@ -1,7 +1,7 @@
 local Timers = require("callback.utils.timers")
 local Callback = require("callback")
 local wait = require("tests.utils.wait")
-local null = require("callback.internal.null")
+local null = require("callback.types.null")
 
 describe("Callback.parallel_limit", function()
   it("works", function()

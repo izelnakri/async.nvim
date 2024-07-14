@@ -1,4 +1,4 @@
-local null = require("callback.internal.null")
+local null = require("callback.types.null")
 local only_once = require("callback.internal.only_once")
 -- local get_tasks_type = require("callback.utils.get_tasks_type")
 

@@ -6,7 +6,6 @@ describe("Timers", function()
       local count = 0
       local timer = Timers.set_interval(function(interval)
         count = count + 1
-        assert.equals(100, interval)
         if count == 3 and timer then -- NOTE: This gets called multiple times(?)
           Timers.clear_interval(timer)
         end
@@ -24,7 +23,6 @@ describe("Timers", function()
       local called = false
       Timers.set_timeout(function(timeout)
         called = true
-        assert.equals(200, timeout)
       end, 200)
 
       vim.wait(250, function()

@@ -2,7 +2,7 @@ local iterator = require("callback.internal.iterator")
 local once = require("callback.internal.once")
 local only_once = require("callback.internal.only_once")
 local break_loop = require("callback.internal.break_loop")
-local null = require("callback.internal.null")
+local null = require("callback.types.null")
 
 return function(concurrency_limit, obj, iteratee, result_callback)
   result_callback = once(result_callback)

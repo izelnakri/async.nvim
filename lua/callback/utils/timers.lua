@@ -1,21 +1,21 @@
 Timers = {}
 
-function Timers.set_interval(func, interval)
+function Timers.set_interval(func, interval, ...)
+  local arguments = { ... }
   local timer = vim.uv.new_timer()
-  timer:start(interval, interval, function()
-    func(interval)
+  timer:start(interval or 0, interval, function()
+    func(unpack(arguments))
   end)
   return timer
 end
 
-function Timers.set_timeout(func, timeout)
-  timeout = timeout or 0
+function Timers.set_timeout(func, timeout, ...)
+  local arguments = { ... }
   local timer = vim.uv.new_timer()
-
-  timer:start(timeout, 0, function()
+  timer:start(timeout or 0, 0, function()
     timer:stop()
     timer:close()
-    func(timeout)
+    func(unpack(arguments))
   end)
   return timer
 end

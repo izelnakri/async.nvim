@@ -1,6 +1,6 @@
 local each_limit = require("callback.internal.each_limit")
 local get_tasks_type = require("callback.utils.get_tasks_type")
-local null = require("callback.internal.null")
+local null = require("callback.types.null")
 
 local get_task_results = function(arguments)
   if #arguments < 2 then
