@@ -4,17 +4,22 @@ local List = require("callback.utils.list")
 local once = require("callback.internal.once")
 local only_once = require("callback.internal.only_once")
 
-return function(tasks, concurrency, callback)
+---Most advanced low-level async control operation that receives an object of tasks where values could be task or order of tasks dependening/referencing other keys/tasks in the object.
+---@param tasks table<string, function> Collection of tasks or order of tasks to pass as a result to result_callback. When tasks callback passes nil as result, the result gets converted to immutable & empty null objects to keep the table length intact in lua.
+---@param concurrency number The maximum number of tasks at a time to run in parallel.
+---@param final_callback? fun(err: any, result: any[]) Result callback runs when all tasks run their callback  or **when one task runs callback with error**. **Can be skipped upon cancellation**
+---@return any callback This will be changed to a Promise-like abstraction in the future
+return function(tasks, concurrency, final_callback)
   if type(concurrency) ~= "number" then
-    callback = concurrency
+    final_callback = concurrency
     concurrency = nil
   end
 
-  callback = once(callback or function() end) -- NOTE: This is essential for calling result callback once!
+  final_callback = once(final_callback or function() end) -- NOTE: This is essential for calling result callback once!
 
   local task_count = #(Object.keys(tasks):totable())
   if task_count == 0 then
-    return callback(nil, {})
+    return final_callback(nil, {})
   elseif not concurrency then
     concurrency = task_count
   end
@@ -36,7 +41,7 @@ return function(tasks, concurrency, callback)
     if canceled then
       return
     elseif (#ready_tasks == 0) and (running_tasks == 0) then
-      return callback(nil, results)
+      return final_callback(nil, results)
     end
 
     while (#ready_tasks > 0) and (running_tasks < concurrency) do
@@ -83,7 +88,7 @@ return function(tasks, concurrency, callback)
           return
         end
 
-        callback(err, safe_results)
+        final_callback(err, safe_results)
       else
         results[key] = (result == nil and null) or result
         task_complete(key)
@@ -195,5 +200,5 @@ return function(tasks, concurrency, callback)
   check_for_deadlocks()
   process_queue()
 
-  return callback -- NOTE: in async npm it is return callback[PROMISE_SYMBOL]
+  return final_callback -- NOTE: in async npm it is return callback[PROMISE_SYMBOL]
 end

@@ -1,5 +1,17 @@
 local List = {}
 
+---Adds one or more elements to the end of the list and return the list
+---@param list table: The list to modify
+---@param ... any: The elements to add
+---@return table: The new list with the added value
+function List.add(list, ...)
+  for _, value in pairs({ ... }) do
+    table.insert(list, value)
+  end
+
+  return list
+end
+
 ---Executes a provided function once for each list element.
 ---@param list table: The list to iterate
 ---@param callback function: A function that takes an element and its index
@@ -49,6 +61,21 @@ function List.push(list, ...)
   end
 
   return #list
+end
+
+---Reduces the list to a single value using a reducer function.
+---@param list table: The list to reduce
+---@param reducer function: A function that takes an accumulator and a list element and returns a new accumulator
+---@param initial any: The initial value of the accumulator
+---@return any: The final value of the accumulator after processing all list elements
+function List.reduce(list, reducer, initial)
+  local result = initial
+
+  for index, value in pairs(list) do
+    result = reducer(result, value, index)
+  end
+
+  return result
 end
 
 ---Removes the first element from the list and returns it.

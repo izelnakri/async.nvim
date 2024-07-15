@@ -1,3 +1,5 @@
+local all = require("callback.all")
+local all_settled = require("callback.all_settled")
 local any = require("callback.any")
 local any_limit = require("callback.any_limit")
 local any_series = require("callback.any_series")
@@ -35,6 +37,8 @@ local waterfall = require("callback.waterfall")
 
 local Callback = {}
 
+Callback.all = all
+Callback.all_settled = all_settled
 Callback.any = any
 Callback.any_limit = any_limit
 Callback.any_series = any_series

@@ -40,6 +40,8 @@ composed with other Callback methods. This lua plugin is already very powerful &
 
 ## All Callback methods provided by this library:
 
+- `Callback.all`
+- `Callback.all_settled`
 - `Callback.any`
 - `Callback.any_limit`
 - `Callback.any_series`
@@ -54,18 +56,23 @@ composed with other Callback methods. This lua plugin is already very powerful &
 - `Callback.filter_limit`
 - `Callback.filter_series`
 - `Callback.forever`
+- `Callback.hash` - not implemented yet, like `Callback.all` but can *only* receives an object of values and/or tasks
+- `Callback.hash_settled` - not implemented yet, like `Callback.all_settled` but can *only* receives an object of values and/or tasks
 - `Callback.log`
 - `Callback.map`
 - `Callback.map_limit`
 - `Callback.map_series`
-- `Callback.parallel`
-- `Callback.parallel_limit`
+- `Callback.parallel` - Exclusively runs tasks
+- `Callback.parallel_limit` - Exclusively runs tasks with concurrency limit
+- `Callback.parallel_limit_settled` - not implemented yet, waits all tasks to finish
+- `Callback.parallel_settled` - not implemented yet, waits all tasks to finish
 - `Callback.race`
 - `Callback.reduce`
 - `Callback.reduce_right`
 - `Callback.resolve`
 - `Callback.run`
-- `Callback.series`
+- `Callback.series` - Exclusively runs tasks
+- `Callback.series_settled` - not implemented yet, exclusively runs tasks, waits all tasks to finish
 - `Callback.times`
 - `Callback.times_limit`
 - `Callback.times_series`
@@ -95,10 +102,10 @@ without iteratee function as 2nd argument.
 
 In the docs when you see "Errors may early return", it means errors can stop the task iteration, however no function actually gets suspended.
 
-If Callback module methods logical equivalents in the JS Promise standard library are:
+Callback module methods logical equivalents in the JS Promise standard library are:
 
-- [Promise.all](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) => `Callback.parallel`
-- [Promise.allSettled](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled) => Doesnt exist, because parallel funcs early return on first error
+- [Promise.all](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) => `Callback.all`
+- [Promise.allSettled](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled) => `Callback.all_settled`
 - [Promise.any](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/any) => `Callback.any`
 - [Promise.race](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race) => `Callback.race`
 - [Promise.reject](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject) => `callback(result)`
@@ -151,10 +158,16 @@ end)
 
 ## Future notes:
 
-Coming soon: `Callback.all`, `Callback.all_settled`, `Callback.hash`, `Callback.hash_settled` APIs & Promise API/return 
+On _settled calls, error value is always a list with null objects(or error results)
+Sanitize errors so they can be nil or null
+
+Coming soon: `Callback.hash`, `Callback.hash_settled` APIs & Promise API/return 
 functionality. `_settled` waits for all tasks to settle before running result callback. These methods are different 
 from all other methods such that they can receive *any* values in lua, instead of just tasks, or task_operation_lists:
 `all`, `all_settled`, `hash`, `hash_settles` is a higher level API than other `Callback` methods because of this.
+Waiting for all tasks to settle doesnt exist right now, `all_settled` will have it with *any* value provided.
+If I want to make tasks operation wait for all the settlement of *all* provided tasks, I have to use the higher-level
+`Callback.all_settled` or `Callback.hash_settled` methods/API. OperationOptions type with concurrency: x, timeout: y, signal: z, onEvent, retry: a
 
 Today `Callback.queue` and `Callback.cargo` functions are NOT implemented. 
 
