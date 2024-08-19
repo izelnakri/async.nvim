@@ -1,3 +1,34 @@
+-- NOTE: This magic does shim vim.uv functions properly to be test safe:
+-- Unfortunately, 'vim.uv' itself does not provide a built-in mechanism to globally intercept or handle errors in callbacks
+local function wrap_all_uv_functions()
+  for name, func in pairs(vim.uv) do
+    if type(func) == "function" then
+      vim.uv[name] = function(...)
+        local args = { ... }
+        local callback = args[#args]
+
+        if type(callback) == "function" then
+          args[#args] = function(err, ...)
+            if err then
+              done(err)
+            else
+              local ok, wrapped_err = pcall(callback, err, ...)
+              if not ok then
+                done(wrapped_err)
+              end
+            end
+          end
+        end
+
+        return func(unpack(args))
+      end
+    end
+  end
+end
+
+-- Call this function at the beginning of your test file or setup
+wrap_all_uv_functions()
+
 local Callback = require("callback")
 local Timers = require("callback.utils.timers")
 
