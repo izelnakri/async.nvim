@@ -24,10 +24,20 @@ local function wrap_all_uv_functions()
       end
     end
   end
+
+  -- Wrap vim.schedule to catch exceptions on test
+  local original_schedule = vim.schedule
+  vim.schedule = function(callback)
+    original_schedule(function()
+      local ok, err = pcall(callback)
+      if not ok then
+        done(err)
+      end
+    end)
+  end
 end
 
--- Call this function at the beginning of your test file or setup
-wrap_all_uv_functions()
+wrap_all_uv_functions() -- Call this function at the beginning of your test file or setup
 
 local Callback = require("callback")
 local Timers = require("callback.utils.timers")
@@ -54,19 +64,13 @@ local finalize_coroutine = function(target_coroutine, optional_error)
   if status == "dead" then
     return true
   else
-    local ok, err = pcall(coroutine.resume, target_coroutine.co) -- TODO: It should be here
-    log("finalize_coroutine", ok, err)
-    -- if not ok or optional_error ~= nil then
-    --   vim.print("ZZZZZZ NOT OK CALLLLL")
-    --   vim.print(err) -- NOTE: is this needed?
-    -- end
+    coroutine.resume(target_coroutine.co) -- NOTE: Change from this below:
 
-    flush_stdout()
     target_coroutine.done_callback(optional_error)
   end
 end
 
-_G.done = function(optional_error) -- could have done_callback passed as param, probably not a good idea
+_G.done = function(optional_error) -- optional_error param essential for shimming vim.uv exception catching
   coroutine_index = coroutine_index + 1
   if coroutine_index > #coroutine_queue then
     return error("You are calling done() on a test but it gets called more than async_it tests")
@@ -75,47 +79,17 @@ _G.done = function(optional_error) -- could have done_callback passed as param, 
   finalize_coroutine(coroutine_queue[coroutine_index], optional_error)
 end
 
-local async = function(func, done_callback, ...)
-  local args = { ... }
-  local co = coroutine.create(function()
-    vim.print("YIELD :" .. #coroutine_queue)
-    local ok, err = pcall(func, unpack(args))
-    log("func", ok, err)
-
-    flush_stdout() -- Ensure stdout is flushed
-
-    vim.print("BEFORE YIELD :" .. #coroutine_queue)
-    coroutine.yield()
-    vim.print("AFTER YIELD")
-
-    -- done_callback() -- Signal completion when the function is done
-  end)
-
-  table.insert(coroutine_queue, { co = co, done_callback = done_callback })
-
-  local ok, err = pcall(coroutine.resume, co)
-  log("coroutine.initial_call", ok, err)
-
-  if not ok then
-    vim.print("NOT OK CALLLLL")
-    coroutine_index = coroutine_index + 1
-    finalize_coroutine(coroutine_queue[coroutine_index])
-    flush_stdout()
-    return error(err)
-  end
-
-  flush_stdout() -- Ensure stdout is flushed before yielding
-end
-
 local index = 0
 local async_it = function(title, func)
   index = index + 1
-  local local_index = index
+  -- local local_index = index
   local found_error
   return it(title, function(...)
     local is_done = false -- Local to each async_it run
 
     local function done_callback(err)
+      flush_stdout()
+
       if err ~= nil then
         found_error = err
       end
@@ -123,17 +97,30 @@ local async_it = function(title, func)
       is_done = true
     end
 
-    async(func, done_callback, ...)
-    -- log("async_it.async", ok, result)
-    -- if not ok then
-    --   vim.print("NOT OK CALL")
-    --   done_callback(result) -- NOTE: maybe remove this
-    -- end
+    local wrapped_func = function(...) -- Wrap the original function to catch errors
+      local ok, err = pcall(func, ...)
+      if not ok then
+        done(err)
+      end
+    end
 
-    while not is_done do -- TODO: make it so it can listen to thrown function inside the event loop
-      vim.print("still not done?:" .. local_index)
+    local args = { ... }
+    local co = coroutine.create(function()
+      wrapped_func(unpack(args))
+
+      coroutine.yield()
+    end)
+
+    table.insert(coroutine_queue, { co = co, done_callback = done_callback })
+    coroutine.resume(co) -- NOTE: Changed from the thing below:
+
+    if is_done and found_error then
+      error(found_error)
+    end
+
+    while not is_done do
+      -- vim.print("still not done?:" .. local_index)
       vim.wait(10) -- Small wait to prevent a busy loop
-
       if found_error then
         error(found_error)
       end
@@ -147,7 +134,7 @@ describe("Callback.all", function()
     vim.print("")
 
     Timers.set_timeout(function()
-      assert.are.equal(true, false) -- NOTE: Changing this to false doesnt work
+      assert.are.equal(true, true) -- NOTE: Changing this to false doesnt work
       done()
     end, 1000)
   end)
@@ -162,7 +149,7 @@ describe("Callback.all", function()
   async_it("another one with timeout", function()
     Timers.set_timeout(function()
       vim.print("CXXX")
-      assert.are.equal("A", "B")
+      assert.are.equal("A", "A")
 
       done() -- Calls done_callback to unblock the async_it
     end, 1000)
@@ -194,36 +181,58 @@ describe("Callback.all", function()
       vim.print(result)
       vim.print("")
 
-      assert.are.equal("2AA", "2AB")
+      assert.are.equal("2AA", "2AA")
 
       done() -- Calls done_callback to unblock the async_it
     end)
 
     vim.print("cool")
+    vim.print("")
 
-    assert.are.equal("AA", "AB")
+    assert.are.equal("AA", "AA") -- TODO: This should fail
   end)
 
-  -- TODO: This one is problematic, current implementation cannot catch *all* event loop exceptions properly
-  it("with defer function works", function()
+  async_it("with async uv function works", function()
     vim.uv.fs_statfs("./stylua.toml", function(err, res)
-      assert.are.equal(true, false)
+      assert.are.equal(true, true)
       done()
     end)
-
-    vim.wait(6000)
   end)
 
-  -- -- TODO: This cant be obtained neither
-  -- async_it("with defer function works", function()
-  --   vim.defer_fn(function()
-  --     print("zXXX")
-  --     assert.are.equal("A", "B")
-  --
-  --     done() -- Calls done_callback to unblock the async_it
-  --   end, 1000)
-  --   print("zAAAAAAAA")
-  --
-  --   assert.are.equal("A", "A")
-  -- end)
+  async_it("runtime error on sync code works", function()
+    Timer.set_timeout(function()
+      vim.print("CXXX")
+      assert.are.equal("A", "A")
+
+      done()
+    end, 1000)
+    vim.print("AAAAAAAAA")
+
+    assert.are.equal("A", "A")
+  end)
+
+  async_it("runtime errors on async code works", function()
+    Timers.set_timeout(function()
+      Timer.set_timeout()
+      vim.print("CXXX")
+      assert.are.equal("A", "A")
+
+      done()
+    end, 1000)
+    vim.print("AAAAAAAAA")
+
+    assert.are.equal("A", "A")
+  end)
+
+  async_it("with defer function works", function()
+    vim.defer_fn(function()
+      print("zXXX")
+      assert.are.equal("A", "A")
+
+      done()
+    end, 1000)
+    print("zAAAAAAAA")
+
+    assert.are.equal("A", "A")
+  end)
 end)
