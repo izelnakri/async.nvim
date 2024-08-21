@@ -1,3 +1,5 @@
+vim.print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
 -- NOTE: This magic does shim vim.uv functions properly to be test safe:
 -- Unfortunately, 'vim.uv' itself does not provide a built-in mechanism to globally intercept or handle errors in callbacks
 local function wrap_all_uv_functions()
@@ -96,7 +98,7 @@ _G.async_it = function(title, func)
     end
 
     local wrapped_func = function(...) -- Wrap the original function to catch errors
-      local ok, err = pcall(func, ...)
+      local ok, err = pcall(func, _G.done, ...)
       if not ok then
         done(err)
       end
