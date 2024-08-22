@@ -4,7 +4,10 @@ function Timers.set_interval(func, interval, ...)
   local arguments = { ... }
   local timer = vim.uv.new_timer()
   timer:start(interval or 0, interval, function()
-    func(unpack(arguments))
+    local ok, err = pcall(func, unpack(arguments))
+    if not ok then
+      done(err)
+    end
   end)
   return timer
 end
@@ -15,7 +18,10 @@ function Timers.set_timeout(func, timeout, ...)
   timer:start(timeout or 0, 0, function()
     timer:stop()
     timer:close()
-    func(unpack(arguments))
+    local ok, err = pcall(func, unpack(arguments))
+    if not ok then
+      done(err)
+    end
   end)
   return timer
 end

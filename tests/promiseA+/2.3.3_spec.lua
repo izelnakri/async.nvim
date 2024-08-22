@@ -4,7 +4,6 @@ local Promise = require("callback.types.promise")
 local Timers = require("callback.utils.timers")
 local Helper = require("tests.helpers.init")
 local nextables = require("tests.helpers.nextables")
-local spy = require("luassert.spy")
 
 local dummy = { dummy = "dummy" } -- we fulfill or reject with this when we don't intend to test against it
 local sentinel = { sentinel = "sentinel" } -- a sentinel fulfillment value to test for with strict equality

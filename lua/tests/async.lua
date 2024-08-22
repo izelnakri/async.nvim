@@ -1,5 +1,3 @@
-vim.print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-
 -- NOTE: This magic does shim vim.uv functions properly to be test safe:
 -- Unfortunately, 'vim.uv' itself does not provide a built-in mechanism to globally intercept or handle errors in callbacks
 local function wrap_all_uv_functions()
