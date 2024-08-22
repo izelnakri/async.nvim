@@ -1,47 +1,142 @@
 local Promise = {}
 
--- Create a new Promise
+local function defer(fn)
+  vim.schedule(fn)
+end
+
+local function is_callable(callback)
+  if type(callback) == "function" then
+    return true
+  end
+
+  local mt = getmetatable(callback)
+  return mt and mt.__call ~= nil
+end
+
+local function adopt_promise_state(promise, x, resolve, reject)
+  if x == promise then
+    return reject("TypeError: Promise resolved with itself")
+  end
+
+  if x and (type(x) == "table" or is_callable(x)) then
+    local success, thenCall
+    success, thenCall = pcall(function()
+      return x.thenCall
+    end)
+
+    if success and is_callable(thenCall) then
+      local called = false
+
+      local function resolve_once(y)
+        if called then
+          return
+        end
+        called = true
+        adopt_promise_state(promise, y, resolve, reject)
+      end
+
+      local function reject_once(r)
+        if called then
+          return
+        end
+        called = true
+        reject(r)
+      end
+
+      local success_inner, err = pcall(function()
+        thenCall(x, resolve_once, reject_once)
+      end)
+
+      if not success_inner then
+        reject_once(err)
+      end
+    else
+      if success then
+        resolve(x)
+      else
+        reject(thenCall)
+      end
+    end
+  else
+    resolve(x)
+  end
+end
+
 function Promise.new(executor)
+  if executor == nil then
+    error("TypeError: Promise resolver is not a function")
+  end
+
   local promise = {
     _state = "pending", -- 'pending', 'fulfilled', 'rejected'
     _value = nil,
     _reason = nil,
     _thenCallbacks = {},
-    _catchCallbacks = {},
     _finallyCallbacks = {},
   }
 
-  -- Resolves the promise
+  local function transition_to_state(newState, result)
+    if promise._state ~= "pending" then
+      return
+    end
+
+    promise._state = newState
+
+    if newState == "fulfilled" then
+      promise._value = result
+      for _, callbackPair in ipairs(promise._thenCallbacks) do
+        if callbackPair[1] then
+          defer(function()
+            callbackPair[1](result)
+          end)
+        end
+      end
+    elseif newState == "rejected" then
+      promise._reason = result
+      for _, callbackPair in ipairs(promise._thenCallbacks) do
+        if callbackPair[2] then
+          defer(function()
+            callbackPair[2](result)
+          end)
+        end
+      end
+    end
+
+    for _, callback in ipairs(promise._finallyCallbacks) do
+      defer(callback)
+    end
+
+    -- Clear callbacks after execution
+    promise._thenCallbacks = nil
+    promise._finallyCallbacks = nil
+  end
+
   local function resolve(value)
     if promise._state ~= "pending" then
       return
     end
-    promise._state = "fulfilled"
-    promise._value = value
-    for _, callback in ipairs(promise._thenCallbacks) do
-      callback(value)
-    end
-    for _, callback in ipairs(promise._finallyCallbacks) do
-      callback()
-    end
+
+    adopt_promise_state(promise, value, function(v)
+      defer(function()
+        transition_to_state("fulfilled", v)
+      end)
+    end, function(r)
+      defer(function()
+        transition_to_state("rejected", r)
+      end)
+    end)
   end
 
-  -- Rejects the promise
   local function reject(reason)
     if promise._state ~= "pending" then
       return
     end
-    promise._state = "rejected"
-    promise._reason = reason
-    for _, callback in ipairs(promise._catchCallbacks) do
-      callback(reason)
-    end
-    for _, callback in ipairs(promise._finallyCallbacks) do
-      callback()
-    end
+
+    defer(function()
+      transition_to_state("rejected", reason)
+    end)
   end
 
-  -- Run the executor function in a coroutine
   local co = coroutine.create(function()
     local success, err = pcall(executor, resolve, reject)
     if not success then
@@ -50,68 +145,87 @@ function Promise.new(executor)
   end)
   coroutine.resume(co)
 
-  -- :then method
-  function promise:thenCall(onFulfilled)
-    if self._state == "fulfilled" then
-      onFulfilled(self._value)
-    elseif self._state == "pending" then
-      table.insert(self._thenCallbacks, onFulfilled)
-    end
-    return self
+  function promise:thenCall(onFulfilled, onRejected)
+    local nextPromise
+    nextPromise = Promise.new(function(resolve, reject)
+      local function handleCallback(callback, value, resolve, reject)
+        defer(function()
+          if is_callable(callback) then
+            local success, result = pcall(callback, value)
+            if success then
+              adopt_promise_state(nextPromise, result, resolve, reject)
+            else
+              reject(result)
+            end
+          else
+            if self._state == "fulfilled" then
+              resolve(value)
+            else
+              reject(value)
+            end
+          end
+        end)
+      end
+
+      if self._state == "fulfilled" then
+        handleCallback(onFulfilled, self._value, resolve, reject)
+      elseif self._state == "rejected" then
+        handleCallback(onRejected, self._reason, resolve, reject)
+      elseif self._state == "pending" then
+        table.insert(self._thenCallbacks, {
+          function(value)
+            handleCallback(onFulfilled, value, resolve, reject)
+          end,
+          function(reason)
+            handleCallback(onRejected, reason, resolve, reject)
+          end,
+        })
+      end
+    end)
+
+    return nextPromise
   end
 
-  -- :catch method
   function promise:catch(onRejected)
-    if self._state == "rejected" then
-      onRejected(self._reason)
-    elseif self._state == "pending" then
-      table.insert(self._catchCallbacks, onRejected)
-    end
-    return self
+    return self:thenCall(nil, onRejected)
   end
 
-  -- :finally method
   function promise:finally(onFinally)
     if self._state ~= "pending" then
-      onFinally()
+      defer(onFinally)
     else
       table.insert(self._finallyCallbacks, onFinally)
     end
     return self
   end
 
-  return promise -- NOTE: Maybe make it so it extends from coroutine instance: https://chatgpt.com/c/e2940cae-9a3f-473b-b739-f7446579eea0
+  return promise
 end
 
--- Resolve a value into a promise
 function Promise.resolve(value)
   return Promise.new(function(resolve)
     resolve(value)
   end)
 end
 
--- Reject a value into a promise
 function Promise.reject(reason)
   return Promise.new(function(_, reject)
     reject(reason)
   end)
 end
 
--- Await a promise (for synchronous code)
 function Promise.await(promise)
   local co = coroutine.create(function()
     local value
     local done = false
 
-    promise
-      :thenCall(function(result)
-        value = result
-        done = true
-      end)
-      :catch(function(err)
-        value = err
-        done = true
-      end)
+    promise:thenCall(function(result)
+      value = result
+      done = true
+    end, function(err)
+      value = err
+      done = true
+    end)
 
     while not done do
       coroutine.yield()
@@ -120,18 +234,16 @@ function Promise.await(promise)
     return value
   end)
 
-  local success, result = coroutine.resume(co)
+  local _, result = coroutine.resume(co)
   return result
 end
 
--- Create a promise with external resolvers
 function Promise.withResolvers()
   local resolve, reject
   local promise = Promise.new(function(res, rej)
     resolve = res
     reject = rej
   end)
-
   return promise, resolve, reject
 end
 
