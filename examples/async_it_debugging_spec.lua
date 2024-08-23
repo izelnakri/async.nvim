@@ -1,4 +1,4 @@
-require("tests.async")
+require("async.test")
 
 local Callback = require("callback")
 local Timers = require("callback.utils.timers")
