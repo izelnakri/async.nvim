@@ -1,4 +1,4 @@
-local Timers = require("callback.utils.timers")
+local Timers = require("timers")
 
 describe("Timers", function()
   describe("set_interval", function()
