@@ -62,7 +62,7 @@ local function adopt_promise_state(promise, x, resolve, reject)
   end
 end
 
-function Promise.new(executor)
+function Promise:new(executor)
   if executor == nil then
     error("TypeError: Promise resolver is not a function")
   end
@@ -147,7 +147,7 @@ function Promise.new(executor)
 
   function promise:thenCall(onFulfilled, onRejected)
     local nextPromise
-    nextPromise = Promise.new(function(resolve, reject)
+    nextPromise = Promise:new(function(resolve, reject)
       local function handleCallback(callback, value, resolve, reject)
         defer(function()
           if is_callable(callback) then
@@ -203,13 +203,13 @@ function Promise.new(executor)
 end
 
 function Promise.resolve(value)
-  return Promise.new(function(resolve)
+  return Promise:new(function(resolve)
     resolve(value)
   end)
 end
 
 function Promise.reject(reason)
-  return Promise.new(function(_, reject)
+  return Promise:new(function(_, reject)
     reject(reason)
   end)
 end
@@ -240,7 +240,7 @@ end
 
 function Promise.withResolvers()
   local resolve, reject
-  local promise = Promise.new(function(res, rej)
+  local promise = Promise:new(function(res, rej)
     resolve = res
     reject = rej
   end)

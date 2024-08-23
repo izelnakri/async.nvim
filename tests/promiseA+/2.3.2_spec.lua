@@ -27,7 +27,7 @@ end
 describe("2.3.2: If `x` is a promise, adopt its state", function()
   describe("2.3.2.1: If `x` is pending, `promise` must remain pending until `x` is fulfilled or rejected.", function()
     local function xFactory()
-      return Promise.new(function() end)
+      return Promise:new(function() end)
     end
 
     testPromiseResolution(async_it, xFactory, function(promise, done)

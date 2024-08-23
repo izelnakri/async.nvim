@@ -38,7 +38,7 @@ describe("2.2.2: If `onRejected` is a function,", function()
     end)
 
     async_it("never rejected", function(done)
-      local promise = Promise.new(function() end)
+      local promise = Promise:new(function() end)
       local rejection = spy.new(function() end)
 
       promise:thenCall(nil, rejection)

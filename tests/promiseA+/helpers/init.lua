@@ -7,14 +7,14 @@ local Helper = {}
 
 --generate a pre-resolved promise
 Helper.resolved = function(value)
-  return Promise.new(function(res)
+  return Promise:new(function(res)
     res(value)
   end)
 end
 
 --generate a pre-rejected promise
 Helper.rejected = function(reason)
-  return Promise.new(function(res, rej)
+  return Promise:new(function(res, rej)
     rej(reason)
   end)
 end

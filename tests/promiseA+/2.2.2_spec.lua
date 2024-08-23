@@ -38,7 +38,7 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
     end)
 
     async_it("never fulfilled", function(done)
-      local promise = Promise.new(function() end)
+      local promise = Promise:new(function() end)
       local fulfillment = spy.new(function() end)
 
       promise:thenCall(fulfillment)

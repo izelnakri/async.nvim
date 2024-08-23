@@ -10,7 +10,7 @@ local other = { other = "other" } -- a value we don't want to be strict equal to
 
 describe("2.2.7: `next` must return a promise: `promise2 = promise1:next(onFulfilled, onRejected)`", function()
   it("is a promise", function()
-    local promise1 = Promise.new(function() end)
+    local promise1 = Promise:new(function() end)
     local promise2 = promise1:thenCall()
 
     assert.are.same(type(promise2), "table")
