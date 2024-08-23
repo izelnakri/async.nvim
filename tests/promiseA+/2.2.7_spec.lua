@@ -1,8 +1,8 @@
-require("tests.async")
+require("async.test")
 
-local Helper = require("tests.helpers.init")
-local Timers = require("callback.utils.timers")
-local Promise = require("callback.types.promise")
+local Helper = require("tests.promiseA+.helpers.init")
+local Promise = require("promise")
+local Timers = require("timers")
 
 local dummy = { dummy = "dummy" } -- we fulfill or reject with this when we don't intend to test against it
 local sentinel = { sentinel = "sentinel" } -- a sentinel fulfillment value to test for with strict equality

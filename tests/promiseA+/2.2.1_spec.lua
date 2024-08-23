@@ -1,7 +1,7 @@
-require("tests.async")
+require("async.test")
 
 local dummy = { dummy = "dummy" }
-local Promise = require("callback.types.promise")
+local Promise = require("promise")
 
 describe("2.2.1: Both `onFulfilled` and `onRejected` are optional arguments.", function()
   describe("2.2.1.1: If `onFulfilled` is not a function, it must be ignored.", function()

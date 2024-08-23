@@ -1,7 +1,7 @@
-require("tests.async")
+require("async.test")
 
 local dummy = { dummy = "dummy" }
-local Promise = require("callback.types.promise")
+local Promise = require("promise")
 
 describe(
   "2.3.1: If `promise` and `x` refer to the same object, reject `promise` with a `TypeError' as the reason.",

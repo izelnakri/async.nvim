@@ -1,11 +1,11 @@
-require("tests.async")
+require("async.test")
 
 local dummy = { dummy = "dummy" }
-local Promise = require("callback.types.promise")
-local Timers = require("callback.utils.timers")
+local Promise = require("promise")
+local Timers = require("timers")
 local spy = require("luassert.spy")
 local sentinel = { sentinel = "sentinel" }
-local Helper = require("tests.helpers.init")
+local Helper = require("tests.promiseA+.helpers.init")
 
 describe("2.2.2: If `onRejected` is a function,", function()
   describe(

@@ -1,6 +1,6 @@
-local Timers = require("callback.utils.timers")
-local Helper = require("tests.helpers.init")
-local Promise = require("callback.types.promise")
+local Promise = require("promise")
+local Timers = require("timers")
+local Helper = require("tests.promiseA+.helpers.init")
 local other = { other = "other" } -- a value we don't want to be strict equal to
 
 local Nextable = {}

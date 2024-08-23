@@ -1,7 +1,7 @@
-require("tests.async")
+require("async.test")
 
-local Helper = require("tests.helpers.init")
-local Timers = require("callback.utils.timers")
+local Helper = require("tests.promiseA+.helpers.init")
+local Timers = require("timers")
 local spy = require("luassert.spy")
 
 local dummy = { dummy = "dummy" }

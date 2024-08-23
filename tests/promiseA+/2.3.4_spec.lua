@@ -1,6 +1,6 @@
-require("tests.async")
+require("async.test")
 
-local Helper = require("tests.helpers.init")
+local Helper = require("tests.promiseA+.helpers.init")
 
 local dummy = { dummy = "dummy" } -- we fulfill or reject with this when we don't intend to test against it
 

@@ -1,9 +1,9 @@
-require("tests.async")
+require("async.test")
 
 local dummy = { dummy = "dummy" }
-local Promise = require("callback.types.promise")
-local Timers = require("callback.utils.timers")
-local Helper = require("tests.helpers.init")
+local Promise = require("promise")
+local Timers = require("timers")
+local Helper = require("tests.promiseA+.helpers.init")
 
 describe(
   "2.2.4: `onFulfilled` or `onRejected` must not be called until the execution context stack contains only platform code.",

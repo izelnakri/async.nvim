@@ -1,5 +1,5 @@
-local Promise = require("callback.types.promise")
-local Timers = require("callback.utils.timers")
+local Promise = require("promise")
+local Timers = require("timers")
 
 local dummy = { dummy = "dummy" } -- we fulfill or reject with this when we don't intend to test against it
 
