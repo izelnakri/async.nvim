@@ -1,22 +1,41 @@
-## Callback.nvim - "async" npm library port for lua
+## Async.nvim - "async" npm library port & Promises for lua in NeoVim!
 
-Callback.nvim provides methods to deal with callback based, higher-order asynchronous or synchronous functions. It also
-provides ways to early return computations when occured or when certain cancellation cases provided. Additionally allows
-being selective on how or which error(s) should be used in a program. This is particularly useful when dealing with lua
-in neovim, either when configuring your neovim environment or building neovim plugins.
+To my knowledge this is the only plugin in the world that provides a fully working Promise implementation 
+for lua in Neovim environment that doesnt cause C-Call boundary runtime errors. It is fully compliant with JS Promise 
+spec and it passes the entire Promise A+ test suite:
 
-In other words, Callback.nvim is a utility library to handle asynchronous functions where the asynchronous operation
-isn't wrapped in an asynchronous data structure like `Promise` or `Future`, and where functions need to be controlled
-when they could be run asynchronously.
+```lua
+local Promise = require("promise")
+
+local promise = Promise:new(function(resolve, reject)
+  resolve("some result")
+end):thenCall(function(result)
+  vim.print("this gets called with some result: " .. result)
+end):catch(function(err)
+  vim.print("no error here, this doesnt get called")
+end)
+
+-- or from outside the executor:
+local promise, resolve, reject = Promise.with_resolvers()
+
+local results = Promise.await(Promise.all({ promise1, promise2 }))
+```
+
+Async.nvim also provides methods to deal with callback based, higher-order asynchronous or synchronous functions in Neovim. 
+It also provides ways to early return computations when needed or when certain cancellation cases provided. Additionally 
+it allows developers to be selective on how or which error(s) should be used in a program in more maintanable manner.
+This package is particularly useful when dealing with lua in neovim, either when configuring your neovim environment 
+or building neovim plugins.
+
+In other words, Callback.nvim is a very useful and powerful utility library to handle asynchronous functions where 
+the asynchronous operation isn't wrapped in an asynchronous data structure like `Promise`, and where functions need to 
+be controlled when they could be run asynchronously.
 
 This library is inspired by the [async](https://www.npmjs.com/package/async) npm library, however it is more minimal 
 and the api adjusted for lua specific conventions/differences compared to JavaScript. The test suite is initially ported 
 from [async](https://www.npmjs.com/package/async) library, then I've enhanced it based on the needed adjustments or 
 found missing cases. The core algorithm is ported from async npm library, it is imperative but it is very optimized, 
 correct and memory efficient, handles edge cases like stack overflow on large collections well.
-
-In future I might build a JS Promise-like data structure so Callback methods can be awaited or aborted from outside or
-composed with other Callback methods. This lua plugin is already very powerful & useful.
 
 ## Installation
 
@@ -25,14 +44,23 @@ composed with other Callback methods. This lua plugin is already very powerful &
 ```lua
 -- using lazy.nvim
 {
-  'izelnakri/callback.nvim',
+  'izelnakri/async.nvim',
   config = function()
     -- If you want to expose it globally:
     Callback = require("callback")
+    Promise = require("promise")
+    Timers = require("timers")
 
     -- or a dummy usage example:
     Callback.map({ '/home', '/usr' }, vim.uv.fs_stat, function(err, result) 
       vim.print(vim.inspect(result)) 
+    end)
+
+    -- promise example
+    local something = Promise:new(function(resolve, reject)
+      resolve({ last_name = "Nakri" })
+    end):thenCall(function(result)
+      vim.print("last_name should be: " .. result.last_name)
     end)
   end
 }
@@ -155,6 +183,8 @@ Callback.hash({
 end)
 
 ```
+
+- What if I want iterator functions(each, filter, map, reduce, times to wait for *all* errors to run(?))
 
 ## Future notes:
 
