@@ -25,13 +25,13 @@ Helper.test_fulfilled = function(it, value, test)
   end)
 
   it("immediately-fulfilled", function(done)
-    local promise, resolve = Promise.withResolvers()
+    local promise, resolve = Promise.with_resolvers()
     test(promise, done)
     resolve(value)
   end)
 
   it("eventually-fulfilled", function(done)
-    local promise, resolve = Promise.withResolvers()
+    local promise, resolve = Promise.with_resolvers()
     test(promise, done)
 
     Timers.set_timeout(function()
@@ -46,13 +46,13 @@ Helper.test_rejected = function(it, reason, test)
   end)
 
   it("immediately-rejected", function(done)
-    local promise, _, reject = Promise.withResolvers()
+    local promise, _, reject = Promise.with_resolvers()
     test(promise, done)
     reject(reason)
   end)
 
   it("eventually-rejected", function(done)
-    local promise, _, reject = Promise.withResolvers()
+    local promise, _, reject = Promise.with_resolvers()
 
     test(promise, done)
 

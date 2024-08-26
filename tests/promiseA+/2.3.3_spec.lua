@@ -359,7 +359,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             "calling `resolvePromise` with an asynchronously-fulfilled promise, then calling `rejectPromise`, both synchronously",
             function()
               local function xFactory()
-                local promise, resolve = Promise.withResolvers()
+                local promise, resolve = Promise.with_resolvers()
                 Timers.set_timeout(function()
                   resolve(sentinel)
                 end, 50)
@@ -385,7 +385,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             "calling `resolvePromise` with an asynchronously-rejected promise, then calling `rejectPromise`, both synchronously",
             function()
               local function xFactory()
-                local promise, _, reject = Promise.withResolvers()
+                local promise, _, reject = Promise.with_resolvers()
                 Timers.set_timeout(function()
                   reject(sentinel)
                 end, 50)
@@ -535,7 +535,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             "calling `resolvePromise` with an asynchronously-fulfilled promise, then calling it again, both times synchronously",
             function()
               local function xFactory()
-                local promise, resolve = Promise.withResolvers()
+                local promise, resolve = Promise.with_resolvers()
 
                 Timers.set_timeout(function()
                   resolve(sentinel)
@@ -562,7 +562,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             "calling `resolvePromise` with an asynchronously-rejected promise, then calling it again, both times synchronously",
             function()
               local function xFactory()
-                local promise, _, reject = Promise.withResolvers()
+                local promise, _, reject = Promise.with_resolvers()
 
                 Timers.set_timeout(function()
                   reject(sentinel)
@@ -591,7 +591,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
                 thenCall = function(instance, resolvePromise, rejectPromise)
                   rejectPromise(sentinel)
                   rejectPromise(other)
-                end
+                end,
               }
             end
 
@@ -612,7 +612,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
                   Timers.set_timeout(function()
                     rejectPromise(other)
                   end, 0)
-                end
+                end,
               }
             end
 
@@ -635,7 +635,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
                   Timers.set_timeout(function()
                     rejectPromise(other)
                   end, 20)
-                end
+                end,
               }
             end
 
@@ -647,243 +647,241 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end)
           end)
 
-            describe("saving and abusing `resolvePromise` and `rejectPromise`", function()
-              local savedResolvePromise, savedRejectPromise
+          describe("saving and abusing `resolvePromise` and `rejectPromise`", function()
+            local savedResolvePromise, savedRejectPromise
 
-              local function xFactory()
-                return {
-                  thenCall = function(instance, resolvePromise, rejectPromise)
-                    savedResolvePromise = resolvePromise
-                    savedRejectPromise = rejectPromise
-                  end
-                }
+            local function xFactory()
+              return {
+                thenCall = function(instance, resolvePromise, rejectPromise)
+                  savedResolvePromise = resolvePromise
+                  savedRejectPromise = rejectPromise
+                end,
+              }
+            end
+
+            before_each(function()
+              savedResolvePromise = nil
+              savedRejectPromise = nil
+            end)
+
+            testPromiseResolution(async_it, xFactory, function(promise, done)
+              local timesFulfilled = 0
+              local timesRejected = 0
+
+              promise:thenCall(function()
+                timesFulfilled = timesFulfilled + 1
+              end, function()
+                timesRejected = timesRejected + 1
+              end)
+
+              if savedResolvePromise and savedRejectPromise then
+                savedResolvePromise(dummy)
+                savedResolvePromise(dummy)
+                savedRejectPromise(dummy)
+                savedRejectPromise(dummy)
               end
 
-              before_each(function()
-                savedResolvePromise = nil
-                savedRejectPromise = nil
-              end)
+              Timers.set_timeout(function()
+                savedResolvePromise(dummy)
+                savedResolvePromise(dummy)
+                savedRejectPromise(dummy)
+                savedRejectPromise(dummy)
+              end, 50)
 
-              testPromiseResolution(async_it, xFactory, function(promise, done)
-                local timesFulfilled = 0
-                local timesRejected = 0
-
-                promise:thenCall(
-                  function()
-                    timesFulfilled = timesFulfilled + 1
-                  end,
-                  function()
-                    timesRejected = timesRejected + 1
-                  end
-                )
-
-                if savedResolvePromise and savedRejectPromise then
-                  savedResolvePromise(dummy)
-                  savedResolvePromise(dummy)
-                  savedRejectPromise(dummy)
-                  savedRejectPromise(dummy)
-                end
-
-                Timers.set_timeout(function()
-                  savedResolvePromise(dummy)
-                  savedResolvePromise(dummy)
-                  savedRejectPromise(dummy)
-                  savedRejectPromise(dummy)
-                end, 50)
-
-                Timers.set_timeout(function()
-                  assert.are.equals(timesFulfilled, 1)
-                  assert.are.equals(timesRejected, 0)
-                  done()
-                end, 100)
-              end)
+              Timers.set_timeout(function()
+                assert.are.equals(timesFulfilled, 1)
+                assert.are.equals(timesRejected, 0)
+                done()
+              end, 100)
             end)
+          end)
         end
       )
 
-    describe("2.3.3.3.4: If calling `next` throws an exception `e`,", function()
-      describe("2.3.3.3.4.1: If `resolvePromise` or `rejectPromise` have been called, ignore it.", function()
-        describe("`resolvePromise` was called with a non-nextable", function()
-          local function xFactory()
-            return {
-              thenCall = function(instance, resolvePromise)
-                resolvePromise(sentinel)
-                error(other)
-              end
-            }
-          end
+      describe("2.3.3.3.4: If calling `next` throws an exception `e`,", function()
+        describe("2.3.3.3.4.1: If `resolvePromise` or `rejectPromise` have been called, ignore it.", function()
+          describe("`resolvePromise` was called with a non-nextable", function()
+            local function xFactory()
+              return {
+                thenCall = function(instance, resolvePromise)
+                  resolvePromise(sentinel)
+                  error(other)
+                end,
+              }
+            end
 
-          testPromiseResolution(async_it, xFactory, function(promise, done)
-            promise:thenCall(function(value)
-              assert.are.equals(value, sentinel)
-              done()
+            testPromiseResolution(async_it, xFactory, function(promise, done)
+              promise:thenCall(function(value)
+                assert.are.equals(value, sentinel)
+                done()
+              end)
             end)
           end)
-        end)
 
-        describe("`resolvePromise` was called with an asynchronously-fulfilled promise", function()
-          local function xFactory()
-            local promise, resolve = Promise.withResolvers()
-            Timers.set_timeout(function()
-              resolve(sentinel)
-            end, 50)
+          describe("`resolvePromise` was called with an asynchronously-fulfilled promise", function()
+            local function xFactory()
+              local promise, resolve = Promise.with_resolvers()
+              Timers.set_timeout(function()
+                resolve(sentinel)
+              end, 50)
 
-            return {
-              thenCall = function(instance, resolvePromise)
-                resolvePromise(promise)
-                error(other)
-              end
-            }
-          end
+              return {
+                thenCall = function(instance, resolvePromise)
+                  resolvePromise(promise)
+                  error(other)
+                end,
+              }
+            end
 
-          testPromiseResolution(async_it, xFactory, function(promise, done)
-            promise:thenCall(function(value)
-              assert.are.equals(value, sentinel)
-              done()
+            testPromiseResolution(async_it, xFactory, function(promise, done)
+              promise:thenCall(function(value)
+                assert.are.equals(value, sentinel)
+                done()
+              end)
             end)
           end)
-        end)
 
-        describe("`resolvePromise` was called with an asynchronously-rejected promise", function()
-          local function xFactory()
-            local promise, _, reject = Promise.withResolvers()
-            Timers.set_timeout(function()
-              reject(sentinel)
-            end, 50)
+          describe("`resolvePromise` was called with an asynchronously-rejected promise", function()
+            local function xFactory()
+              local promise, _, reject = Promise.with_resolvers()
+              Timers.set_timeout(function()
+                reject(sentinel)
+              end, 50)
 
-            return {
-              thenCall = function(instance, resolvePromise)
-                resolvePromise(promise)
-                error(other)
-              end
-            }
-          end
+              return {
+                thenCall = function(instance, resolvePromise)
+                  resolvePromise(promise)
+                  error(other)
+                end,
+              }
+            end
 
-          testPromiseResolution(async_it, xFactory, function(promise, done)
-            promise:thenCall(nil, function(reason)
-              assert.are.equals(reason, sentinel)
-              done()
+            testPromiseResolution(async_it, xFactory, function(promise, done)
+              promise:thenCall(nil, function(reason)
+                assert.are.equals(reason, sentinel)
+                done()
+              end)
             end)
           end)
-        end)
 
-        describe("`rejectPromise` was called", function()
-          local function xFactory()
-            return {
-              thenCall = function(instance, resolvePromise, rejectPromise)
-                rejectPromise(sentinel)
-                error(other)
-              end
-            }
-          end
+          describe("`rejectPromise` was called", function()
+            local function xFactory()
+              return {
+                thenCall = function(instance, resolvePromise, rejectPromise)
+                  rejectPromise(sentinel)
+                  error(other)
+                end,
+              }
+            end
 
-          testPromiseResolution(async_it, xFactory, function(promise, done)
-            promise:thenCall(nil, function(reason)
-              assert.are.equals(reason, sentinel)
-              done()
+            testPromiseResolution(async_it, xFactory, function(promise, done)
+              promise:thenCall(nil, function(reason)
+                assert.are.equals(reason, sentinel)
+                done()
+              end)
             end)
           end)
-        end)
 
-        describe("`resolvePromise` then `rejectPromise` were called", function()
-          local function xFactory()
-            return {
-              thenCall = function(instance, resolvePromise, rejectPromise)
-                resolvePromise(sentinel)
-                rejectPromise(other)
-                error(other)
-              end
-            }
-          end
-
-          testPromiseResolution(async_it, xFactory, function(promise, done)
-            promise:thenCall(function(value)
-              assert.are.equals(value, sentinel)
-              done()
-            end)
-          end)
-        end)
-
-        describe("`rejectPromise` then `resolvePromise` were called", function()
-          local function xFactory()
-            return {
-              thenCall = function(instance, resolvePromise, rejectPromise)
-                rejectPromise(sentinel)
-                resolvePromise(other)
-                error(other)
-              end
-            }
-          end
-
-          testPromiseResolution(async_it, xFactory, function(promise, done)
-            promise:thenCall(nil, function(reason)
-              assert.are.equals(reason, sentinel)
-              done()
-            end)
-          end)
-        end)
-      end)
-
-      describe("2.3.3.3.4.2: Otherwise, reject `promise` with `e` as the reason.", function()
-        describe("straightforward case", function()
-          local function xFactory()
-            return {
-              thenCall = function()
-                error(sentinel)
-              end
-            }
-          end
-
-          testPromiseResolution(async_it, xFactory, function(promise, done)
-            promise:thenCall(nil, function(reason)
-              assert.are.equals(reason, sentinel)
-              done()
-            end)
-          end)
-        end)
-
-        describe("`resolvePromise` is called asynchronously before the `throw`", function()
-          local function xFactory()
-            return {
-              thenCall = function(instance, resolvePromise)
-                Timers.set_timeout(function()
-                  resolvePromise(other)
-                end, 0)
-                error(sentinel)
-              end
-            }
-          end
-
-          testPromiseResolution(async_it, xFactory, function(promise, done)
-            promise:thenCall(nil, function(reason)
-              assert.are.equals(reason, sentinel)
-              done()
-            end)
-          end)
-        end)
-
-        describe("`rejectPromise` is called asynchronously before the `throw`", function()
-          local function xFactory()
-            return {
-              thenCall = function(instance, resolvePromise, rejectPromise)
-                Timers.set_timeout(function()
+          describe("`resolvePromise` then `rejectPromise` were called", function()
+            local function xFactory()
+              return {
+                thenCall = function(instance, resolvePromise, rejectPromise)
+                  resolvePromise(sentinel)
                   rejectPromise(other)
-                end, 0)
-                error(sentinel)
-              end
-            }
-          end
+                  error(other)
+                end,
+              }
+            end
 
-          testPromiseResolution(async_it, xFactory, function(promise, done)
-            promise:thenCall(nil, function(reason)
-              assert.are.equals(reason, sentinel)
-              done()
+            testPromiseResolution(async_it, xFactory, function(promise, done)
+              promise:thenCall(function(value)
+                assert.are.equals(value, sentinel)
+                done()
+              end)
+            end)
+          end)
+
+          describe("`rejectPromise` then `resolvePromise` were called", function()
+            local function xFactory()
+              return {
+                thenCall = function(instance, resolvePromise, rejectPromise)
+                  rejectPromise(sentinel)
+                  resolvePromise(other)
+                  error(other)
+                end,
+              }
+            end
+
+            testPromiseResolution(async_it, xFactory, function(promise, done)
+              promise:thenCall(nil, function(reason)
+                assert.are.equals(reason, sentinel)
+                done()
+              end)
+            end)
+          end)
+        end)
+
+        describe("2.3.3.3.4.2: Otherwise, reject `promise` with `e` as the reason.", function()
+          describe("straightforward case", function()
+            local function xFactory()
+              return {
+                thenCall = function()
+                  error(sentinel)
+                end,
+              }
+            end
+
+            testPromiseResolution(async_it, xFactory, function(promise, done)
+              promise:thenCall(nil, function(reason)
+                assert.are.equals(reason, sentinel)
+                done()
+              end)
+            end)
+          end)
+
+          describe("`resolvePromise` is called asynchronously before the `throw`", function()
+            local function xFactory()
+              return {
+                thenCall = function(instance, resolvePromise)
+                  Timers.set_timeout(function()
+                    resolvePromise(other)
+                  end, 0)
+                  error(sentinel)
+                end,
+              }
+            end
+
+            testPromiseResolution(async_it, xFactory, function(promise, done)
+              promise:thenCall(nil, function(reason)
+                assert.are.equals(reason, sentinel)
+                done()
+              end)
+            end)
+          end)
+
+          describe("`rejectPromise` is called asynchronously before the `throw`", function()
+            local function xFactory()
+              return {
+                thenCall = function(instance, resolvePromise, rejectPromise)
+                  Timers.set_timeout(function()
+                    rejectPromise(other)
+                  end, 0)
+                  error(sentinel)
+                end,
+              }
+            end
+
+            testPromiseResolution(async_it, xFactory, function(promise, done)
+              promise:thenCall(nil, function(reason)
+                assert.are.equals(reason, sentinel)
+                done()
+              end)
             end)
           end)
         end)
       end)
-    end)
-  end)
+    end
+  )
 
   describe("2.3.3.4: If `next` is not a function, fulfill promise with `x`", function()
     local function testFulfillViaNonFunction(thenCall, stringRepresentation)
@@ -911,6 +909,6 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
 
     testFulfillViaNonFunction(5, "`5`")
     testFulfillViaNonFunction({}, "a table")
-    testFulfillViaNonFunction({function() end}, "an array containing a function")
+    testFulfillViaNonFunction({ function() end }, "an array containing a function")
   end)
 end)

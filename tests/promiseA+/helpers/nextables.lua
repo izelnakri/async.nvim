@@ -66,7 +66,7 @@ Nextable.fulfilled = {
   end,
 
   ["an eventually-fulfilled promise"] = function(value)
-    local promise, resolve = Promise.withResolvers()
+    local promise, resolve = Promise.with_resolvers()
 
     Timers.set_timeout(function()
       resolve(value)
@@ -137,7 +137,7 @@ Nextable.rejected = {
   end,
 
   ["an eventually-rejected promise"] = function(reason)
-    local promise, _, reject = Promise.withResolvers()
+    local promise, _, reject = Promise.with_resolvers()
     Timers.set_timeout(function()
       reject(reason)
     end, 50)

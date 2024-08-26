@@ -34,7 +34,7 @@ describe(
 
     describe("Clean-stack execution ordering tests (fulfillment case)", function()
       it("when `onFulfilled` is added immediately before the promise is fulfilled", function()
-        local promise, resolve = Promise.withResolvers()
+        local promise, resolve = Promise.with_resolvers()
         local onFulfilledCalled = false
 
         promise:thenCall(function()
@@ -47,7 +47,7 @@ describe(
       end)
 
       it("when `onFulfilled` is added immediately after the promise is fulfilled", function()
-        local promise, resolve = Promise.withResolvers()
+        local promise, resolve = Promise.with_resolvers()
         local onFulfilledCalled = false
 
         resolve(dummy)
@@ -87,7 +87,7 @@ describe(
       end)
 
       async_it("when the promise is fulfilled asynchronously", function(done)
-        local promise, resolve = Promise.withResolvers()
+        local promise, resolve = Promise.with_resolvers()
         local firstStackFinished = false
 
         Timers.set_timeout(function()
@@ -104,7 +104,7 @@ describe(
 
     describe("Clean-stack execution ordering tests (rejection case)", function()
       it("when `onRejected` is added immediately before the promise is rejected", function()
-        local promise, _, reject = Promise.withResolvers()
+        local promise, _, reject = Promise.with_resolvers()
         local onRejectedCalled = false
 
         promise:thenCall(nil, function()
@@ -117,7 +117,7 @@ describe(
       end)
 
       it("when `onRejected` is added immediately after the promise is rejected", function()
-        local promise, _, reject = Promise.withResolvers()
+        local promise, _, reject = Promise.with_resolvers()
         local onRejectedCalled = false
 
         reject(dummy)
@@ -157,7 +157,7 @@ describe(
       end)
 
       async_it("when the promise is rejected asynchronously", function(done)
-        local promise, _, reject = Promise.withResolvers()
+        local promise, _, reject = Promise.with_resolvers()
         local firstStackFinished = false
 
         Timers.set_timeout(function()

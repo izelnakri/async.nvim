@@ -24,7 +24,7 @@ describe("2.1.3.1: When rejected, a promise: must not transition to any other st
     local fulfillment = spy.new(function() end)
     local rejection = spy.new(function() end)
 
-    local promise, resolve, reject = Promise.withResolvers()
+    local promise, resolve, reject = Promise.with_resolvers()
 
     promise:thenCall(fulfillment, rejection)
 
@@ -43,7 +43,7 @@ describe("2.1.3.1: When rejected, a promise: must not transition to any other st
     local fulfillment = spy.new(function() end)
     local rejection = spy.new(function() end)
 
-    local promise, resolve, reject = Promise.withResolvers()
+    local promise, resolve, reject = Promise.with_resolvers()
 
     promise:thenCall(fulfillment, rejection)
 
@@ -63,7 +63,7 @@ describe("2.1.3.1: When rejected, a promise: must not transition to any other st
     local fulfillment = spy.new(function() end)
     local rejection = spy.new(function() end)
 
-    local promise, resolve, reject = Promise.withResolvers()
+    local promise, resolve, reject = Promise.with_resolvers()
 
     promise:thenCall(fulfillment, rejection)
 

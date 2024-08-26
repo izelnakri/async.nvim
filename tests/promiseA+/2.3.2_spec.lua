@@ -61,7 +61,7 @@ describe("2.3.2: If `x` is a promise, adopt its state", function()
 
     describe("`x` is eventually-fulfilled", function()
       local function xFactory()
-        local promise, resolve = Promise.withResolvers()
+        local promise, resolve = Promise.with_resolvers()
 
         Timers.set_timeout(function()
           resolve(sentinel)
@@ -95,7 +95,7 @@ describe("2.3.2: If `x` is a promise, adopt its state", function()
 
     describe("`x` is eventually-rejected", function()
       local function xFactory()
-        local promise, _, reject = Promise.withResolvers()
+        local promise, _, reject = Promise.with_resolvers()
 
         Timers.set_timeout(function()
           reject(sentinel)

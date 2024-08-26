@@ -22,7 +22,7 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
 
   describe("2.2.2.2: it must not be called before `promise` is fulfilled", function()
     async_it("fulfilled after a delay", function(done)
-      local promise, resolve = Promise.withResolvers()
+      local promise, resolve = Promise.with_resolvers()
       local fulfillment = spy.new(function() end)
 
       promise:thenCall(fulfillment)
@@ -62,7 +62,7 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
     end)
 
     async_it("trying to fulfill a pending promise more than once, immediately", function(done)
-      local promise, resolve = Promise.withResolvers()
+      local promise, resolve = Promise.with_resolvers()
 
       local callback = spy.new(function() end)
       promise:thenCall(callback)
@@ -77,7 +77,7 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
     end)
 
     async_it("trying to fulfill a pending promise more than once, delayed", function(done)
-      local promise, resolve = Promise.withResolvers()
+      local promise, resolve = Promise.with_resolvers()
       local callback = spy.new(function() end)
 
       promise:thenCall(callback)
@@ -94,7 +94,7 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
     end)
 
     async_it("trying to fulfill a pending promise more than once, immediately then delayed", function(done)
-      local promise, resolve = Promise.withResolvers()
+      local promise, resolve = Promise.with_resolvers()
 
       local callback = spy.new(function() end)
       promise:thenCall(callback)
@@ -112,7 +112,7 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
     end)
 
     async_it("when multiple `next` calls are made, spaced apart in time", function(done)
-      local promise, resolve = Promise.withResolvers()
+      local promise, resolve = Promise.with_resolvers()
 
       local callback_1 = spy.new(function() end)
       local callback_2 = spy.new(function() end)
@@ -141,7 +141,7 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
     end)
 
     async_it("when `next` is interleaved with fulfillment", function(done)
-      local promise, resolve = Promise.withResolvers()
+      local promise, resolve = Promise.with_resolvers()
       local callback_1 = spy.new(function() end)
       local callback_2 = spy.new(function() end)
 
