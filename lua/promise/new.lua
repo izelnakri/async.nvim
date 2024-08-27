@@ -3,8 +3,8 @@ local function defer(Promise, fn)
     local success, err = pcall(fn)
     if not success then
       -- If the deferred function fails, raise the error to the main thread
-      if type(Promise._unhandledRejectionHandler) == "function" then
-        Promise._unhandledRejectionHandler(err)
+      if type(Promise._unhandled_rejection_handler) == "function" then
+        Promise._unhandled_rejection_handler(err)
       else
         vim.print(err)
       end
@@ -83,8 +83,8 @@ return function(Promise, executor)
     _finallyCallbacks = {},
     _triggerUnhandledRejection = function(self, reason)
       if not self._caught then
-        if type(Promise._unhandledRejectionHandler) == "function" then
-          Promise._unhandledRejectionHandler(reason)
+        if type(Promise._unhandled_rejection_handler) == "function" then
+          Promise._unhandled_rejection_handler(reason)
         else
           vim.print(reason)
         end

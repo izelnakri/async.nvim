@@ -3,23 +3,22 @@ local Promise = {}
 
 Promise.all = require("promise.all")
 Promise.all_settled = require("promise.all_settled")
+Promise.build_task = require("promise.build_task")
 Promise.hash = require("promise.hash")
 Promise.hash_settled = require("promise.hash_settled")
+Promise.parallel = require("promise.parallel")
 Promise.race = require("promise.race")
+Promise.series = require("promise.series")
 Promise.try_each = require("promise.try_each")
+Promise.waterfall = require("promise.waterfall")
 
--- Promise.curry?
 -- Promise.auto? -> complex but very useful
--- Promise.apply then others: -> instead func.pipe
--- series, waterfall, parallel, parallel, limit | all can accept normal values, parallel only accepts promises
--- Promise.auto
-
--- any, any_limit, any_series | every
+-- any, any_limit, any_series | every, limit options
 
 Promise.new = require("promise.new")
 
-function Promise:setUnhandledRejectionHandler(handler)
-  self._unhandledRejectionHandler = handler
+function Promise:set_unhandlerd_rejection_handler(handler)
+  self._unhandled_rejection_handler = handler
 end
 
 function Promise.resolve(value)

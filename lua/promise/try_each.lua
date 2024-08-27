@@ -1,4 +1,4 @@
-local function try_each(promises)
+return function(promises)
   local Promise = require("promise")
 
   return Promise:new(function(resolve, reject)
@@ -36,5 +36,3 @@ local function try_each(promises)
     end
   end)
 end
-
-return try_each
