@@ -1,5 +1,15 @@
-local function defer(fn)
-  vim.schedule(fn)
+local function defer(Promise, fn)
+  vim.schedule(function()
+    local success, err = pcall(fn)
+    if not success then
+      -- If the deferred function fails, raise the error to the main thread
+      if type(Promise._unhandledRejectionHandler) == "function" then
+        Promise._unhandledRejectionHandler(err)
+      else
+        vim.print(err)
+      end
+    end
+  end)
 end
 
 local function is_callable(callback)
@@ -71,6 +81,15 @@ return function(Promise, executor)
     _reason = nil,
     _thenCallbacks = {},
     _finallyCallbacks = {},
+    _triggerUnhandledRejection = function(self, reason)
+      if not self._caught then
+        if type(Promise._unhandledRejectionHandler) == "function" then
+          Promise._unhandledRejectionHandler(reason)
+        else
+          vim.print(reason)
+        end
+      end
+    end,
   }
 
   local function transition_to_state(newState, result)
@@ -84,7 +103,7 @@ return function(Promise, executor)
       promise._value = result
       for _, callbackPair in ipairs(promise._thenCallbacks) do
         if callbackPair[1] then
-          defer(function()
+          defer(Promise, function()
             callbackPair[1](result)
           end)
         end
@@ -93,7 +112,7 @@ return function(Promise, executor)
       promise._reason = result
       for _, callbackPair in ipairs(promise._thenCallbacks) do
         if callbackPair[2] then
-          defer(function()
+          defer(Promise, function()
             callbackPair[2](result)
           end)
         end
@@ -101,7 +120,7 @@ return function(Promise, executor)
     end
 
     for _, callback in ipairs(promise._finallyCallbacks) do
-      defer(callback)
+      defer(Promise, callback)
     end
 
     -- Clear callbacks after execution
@@ -115,11 +134,11 @@ return function(Promise, executor)
     end
 
     adopt_promise_state(promise, value, function(v)
-      defer(function()
+      defer(Promise, function()
         transition_to_state("fulfilled", v)
       end)
     end, function(r)
-      defer(function()
+      defer(Promise, function()
         transition_to_state("rejected", r)
       end)
     end)
@@ -130,8 +149,9 @@ return function(Promise, executor)
       return
     end
 
-    defer(function()
+    defer(Promise, function()
       transition_to_state("rejected", reason)
+      promise:_triggerUnhandledRejection(reason)
     end)
   end
 
@@ -144,10 +164,11 @@ return function(Promise, executor)
   coroutine.resume(co)
 
   function promise:thenCall(onFulfilled, onRejected)
+    self._caught = true
     local nextPromise
     nextPromise = Promise:new(function(resolve, reject)
       local function handleCallback(callback, value, resolve, reject)
-        defer(function()
+        defer(Promise, function()
           if is_callable(callback) then
             local success, result = pcall(callback, value)
             if success then
@@ -185,12 +206,14 @@ return function(Promise, executor)
   end
 
   function promise:catch(onRejected)
+    self._caught = true
+
     return self:thenCall(nil, onRejected)
   end
 
   function promise:finally(onFinally)
     if self._state ~= "pending" then
-      defer(onFinally)
+      defer(Promise, onFinally)
     else
       table.insert(self._finallyCallbacks, onFinally)
     end

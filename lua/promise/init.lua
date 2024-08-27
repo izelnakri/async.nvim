@@ -1,12 +1,26 @@
+-- NOTE: Promise return for Callback method is REQUIRED because of Callback.filter play with promise functions
 local Promise = {}
 
 Promise.all = require("promise.all")
 Promise.all_settled = require("promise.all_settled")
--- Promise.hash = require("promise.hash")
--- Promise.hash_settled = require("promise.hash_settled")
--- Promise.race = require("promise.race")
+Promise.hash = require("promise.hash")
+Promise.hash_settled = require("promise.hash_settled")
+Promise.race = require("promise.race")
+Promise.try_each = require("promise.try_each")
+
+-- Promise.curry?
+-- Promise.auto? -> complex but very useful
+-- Promise.apply then others: -> instead func.pipe
+-- series, waterfall, parallel, parallel, limit | all can accept normal values, parallel only accepts promises
+-- Promise.auto
+
+-- any, any_limit, any_series | every
 
 Promise.new = require("promise.new")
+
+function Promise:setUnhandledRejectionHandler(handler)
+  self._unhandledRejectionHandler = handler
+end
 
 function Promise.resolve(value)
   return Promise:new(function(resolve)
@@ -55,8 +69,5 @@ end
 
 return Promise
 
--- :thenCall, :catch, :finally
-
 -- promise-async creates a async queue, I might also need that/good to have for RSVP/render waiters maybe, its like supervision chain
 -- tostring values maybe
--- Promise.all, Promise.all_settled, Promise.try(?), Promise.race, Promise.withResolvers()
