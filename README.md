@@ -27,7 +27,7 @@ it allows developers to be selective on how or which error(s) should be used in 
 This package is particularly useful when dealing with lua in neovim, either when configuring your neovim environment 
 or building neovim plugins.
 
-In other words, Callback.nvim is a very useful and powerful utility library to handle asynchronous functions where 
+In other words, async.nvim is a very useful and powerful utility library to handle asynchronous functions where 
 the asynchronous operation isn't wrapped in an asynchronous data structure like `Promise`, and where functions need to 
 be controlled when they could be run asynchronously.
 
@@ -50,6 +50,7 @@ correct and memory efficient, handles edge cases like stack overflow on large co
     Callback = require("callback")
     Promise = require("promise")
     Timers = require("timers")
+    await = Promise.await
 
     -- or a dummy usage example:
     Callback.map({ '/home', '/usr' }, vim.uv.fs_stat, function(err, result) 
@@ -57,11 +58,12 @@ correct and memory efficient, handles edge cases like stack overflow on large co
     end)
 
     -- promise example
-    local something = Promise:new(function(resolve, reject)
+    local promise = Promise:new(function(resolve, reject)
       resolve({ last_name = "Nakri" })
     end):thenCall(function(result)
       vim.print("last_name should be: " .. result.last_name)
     end)
+    local me = await(promise)
   end
 }
 ```
@@ -181,32 +183,9 @@ Callback.hash({
   type(null) == "table"
   null.something = 123 -- NOTE: This will throw error since null objects are immutable!
 end)
-
 ```
-
-- What if I want iterator functions(each, filter, map, reduce, times to wait for *all* errors to run(?))
 
 ## Future notes:
 
-On _settled calls, error value is always a list with null objects(or error results)
-Sanitize errors so they can be nil or null
+- Iterator support for methods: each, filter, map, reduce etc.
 
-Coming soon: `Callback.hash`, `Callback.hash_settled` APIs & Promise API/return 
-functionality. `_settled` waits for all tasks to settle before running result callback. These methods are different 
-from all other methods such that they can receive *any* values in lua, instead of just tasks, or task_operation_lists:
-`all`, `all_settled`, `hash`, `hash_settles` is a higher level API than other `Callback` methods because of this.
-Waiting for all tasks to settle doesnt exist right now, `all_settled` will have it with *any* value provided.
-If I want to make tasks operation wait for all the settlement of *all* provided tasks, I have to use the higher-level
-`Callback.all_settled` or `Callback.hash_settled` methods/API. OperationOptions type with concurrency: x, timeout: y, signal: z, onEvent, retry: a
-
-Today `Callback.queue` and `Callback.cargo` functions are NOT implemented. 
-
-Cargo: passes array of tasks to a worker at once, could optionally repeat when the worker is finished.
-CargoQueue: runs queue concurrently on workers in parallel.
-Queue: passes one task at a time to a single worker.
-
-These functions provide no persistence(for process restarts/kills) and their behavior might be achieved without needimg 
-them, resorting to existing methods here with a distributed store like RabbitMQ or PostgreSQL(when set up clustered).
-
-Promise(function(resolve, reject)) -> **reject function could also be a callback shaped?**, whereas reject(nil) calls resolve and reject(false) cancelles and reject(nil, smt) resolves smt?
-resolve function could be a curry of `function(val) return callback(nil, val) end`
