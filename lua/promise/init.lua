@@ -3,6 +3,7 @@ local Promise = {}
 
 Promise.all = require("promise.all")
 Promise.all_settled = require("promise.all_settled")
+Promise.auto = require("promise.auto")
 Promise.build_task = require("promise.build_task")
 Promise.hash = require("promise.hash")
 Promise.hash_settled = require("promise.hash_settled")
@@ -12,7 +13,6 @@ Promise.series = require("promise.series")
 Promise.try_each = require("promise.try_each")
 Promise.waterfall = require("promise.waterfall")
 
--- Promise.auto? -> complex but very useful
 -- any, any_limit, any_series | every, limit options
 
 Promise.new = require("promise.new")
