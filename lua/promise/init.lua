@@ -34,26 +34,35 @@ function Promise.reject(reason)
 end
 
 function Promise.await(promise)
-  local co = coroutine.create(function()
-    local value
-    local done = false
+  local result
+  local error_message
+  local resolved = false
+  local errored = false
 
-    promise:thenCall(function(result)
-      value = result
-      done = true
-    end, function(err)
-      value = err
-      done = true
+  local function handleResolution(value)
+    result = value
+    resolved = true
+  end
+
+  local function handleRejection(reason)
+    error_message = reason
+    errored = true
+  end
+
+  promise:thenCall(handleResolution, handleRejection)
+
+  -- Use vim.wait to periodically check the promise state
+  while not resolved and not errored do
+    vim.wait(10, function()
+      -- Return false to continue waiting
+      return resolved or errored
     end)
+  end
 
-    while not done do
-      coroutine.yield()
-    end
+  if errored then
+    error(error_message)
+  end
 
-    return value
-  end)
-
-  local _, result = coroutine.resume(co)
   return result
 end
 
