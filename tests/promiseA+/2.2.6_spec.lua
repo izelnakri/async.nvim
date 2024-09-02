@@ -39,11 +39,11 @@ describe("2.2.6: `next` may be called multiple times on the same promise.", func
           end)
 
           local rejected_spy = spy.new(function() end)
-          promise:thenCall(handler1, rejected_spy)
-          promise:thenCall(handler2, rejected_spy)
-          promise:thenCall(handler3, rejected_spy)
+          promise:and_then(handler1, rejected_spy)
+          promise:and_then(handler2, rejected_spy)
+          promise:and_then(handler3, rejected_spy)
 
-          promise:thenCall(function(value)
+          promise:and_then(function(value)
             assert.are.equal(value, sentinel)
 
             assert.spy(handler1).was_called_with(sentinel)
@@ -70,11 +70,11 @@ describe("2.2.6: `next` may be called multiple times on the same promise.", func
           end)
 
           local rejected_spy = spy.new(function() end)
-          promise:thenCall(handler1, spy)
-          promise:thenCall(handler2, spy)
-          promise:thenCall(handler3, spy)
+          promise:and_then(handler1, spy)
+          promise:and_then(handler2, spy)
+          promise:and_then(handler3, spy)
 
-          promise:thenCall(function(value)
+          promise:and_then(function(value)
             assert.are.equal(value, sentinel)
 
             assert.spy(handler1).was_called_with(sentinel)
@@ -93,30 +93,30 @@ describe("2.2.6: `next` may be called multiple times on the same promise.", func
           local semiDone = callbackAggregator(3, done)
 
           promise
-            :thenCall(function()
+            :and_then(function()
               return sentinel
             end)
-            :thenCall(function(value)
+            :and_then(function(value)
               assert.are.equals(value, sentinel)
 
               semiDone()
             end)
 
           promise
-            :thenCall(function()
+            :and_then(function()
               error(sentinel2)
             end)
-            :thenCall(nil, function(reason)
+            :and_then(nil, function(reason)
               assert.are.equals(reason, sentinel2)
 
               semiDone()
             end)
 
           promise
-            :thenCall(function()
+            :and_then(function()
               return sentinel3
             end)
-            :thenCall(function(value)
+            :and_then(function(value)
               assert.are.equals(value, sentinel3)
 
               semiDone()
@@ -137,11 +137,11 @@ describe("2.2.6: `next` may be called multiple times on the same promise.", func
           local handler2 = ordered_callback(2)
           local handler3 = ordered_callback(3)
 
-          promise:thenCall(handler1)
-          promise:thenCall(handler2)
-          promise:thenCall(handler3)
+          promise:and_then(handler1)
+          promise:and_then(handler2)
+          promise:and_then(handler3)
 
-          promise:thenCall(function()
+          promise:and_then(function()
             assert.are.same(content, { 1, 2, 3 })
             done()
           end)
@@ -160,13 +160,13 @@ describe("2.2.6: `next` may be called multiple times on the same promise.", func
             local handler2 = ordered_callback(2)
             local handler3 = ordered_callback(3)
 
-            promise:thenCall(function()
+            promise:and_then(function()
               handler1()
-              promise:thenCall(handler3)
+              promise:and_then(handler3)
             end)
-            promise:thenCall(handler2)
+            promise:and_then(handler2)
 
-            promise:thenCall(function()
+            promise:and_then(function()
               -- Give implementations a bit of extra time to flush their internal queue, if necessary.
               Timers.set_timeout(function()
                 assert.are.same(content, { 1, 2, 3 })
@@ -196,11 +196,11 @@ describe("2.2.6: `next` may be called multiple times on the same promise.", func
 
           local fulfill_spy = spy.new(function() end)
 
-          promise:thenCall(fulfill_spy, handler1)
-          promise:thenCall(fulfill_spy, handler2)
-          promise:thenCall(fulfill_spy, handler3)
+          promise:and_then(fulfill_spy, handler1)
+          promise:and_then(fulfill_spy, handler2)
+          promise:and_then(fulfill_spy, handler3)
 
-          promise:thenCall(nil, function(reason)
+          promise:and_then(nil, function(reason)
             assert.are.equals(reason, sentinel)
 
             assert.spy(handler1).called_with(sentinel)
@@ -226,11 +226,11 @@ describe("2.2.6: `next` may be called multiple times on the same promise.", func
           end)
 
           local fulfill_spy = spy.new(function() end)
-          promise:thenCall(fulfill_spy, handler1)
-          promise:thenCall(fulfill_spy, handler2)
-          promise:thenCall(fulfill_spy, handler3)
+          promise:and_then(fulfill_spy, handler1)
+          promise:and_then(fulfill_spy, handler2)
+          promise:and_then(fulfill_spy, handler3)
 
-          promise:thenCall(nil, function(reason)
+          promise:and_then(nil, function(reason)
             assert.are.equals(reason, sentinel)
 
             assert.spy(handler1).called_with(sentinel)
@@ -248,28 +248,28 @@ describe("2.2.6: `next` may be called multiple times on the same promise.", func
           local semiDone = callbackAggregator(3, done)
 
           promise
-            :thenCall(nil, function()
+            :and_then(nil, function()
               return sentinel
             end)
-            :thenCall(function(value)
+            :and_then(function(value)
               assert.are.equals(value, sentinel)
               semiDone()
             end)
 
           promise
-            :thenCall(nil, function()
+            :and_then(nil, function()
               error(sentinel2)
             end)
-            :thenCall(nil, function(reason)
+            :and_then(nil, function(reason)
               assert.are.equals(reason, sentinel2)
               semiDone()
             end)
 
           promise
-            :thenCall(nil, function()
+            :and_then(nil, function()
               return sentinel3
             end)
-            :thenCall(function(value)
+            :and_then(function(value)
               assert.are.equals(value, sentinel3)
               semiDone()
             end)
@@ -289,11 +289,11 @@ describe("2.2.6: `next` may be called multiple times on the same promise.", func
           local handler2 = ordered_callback(2)
           local handler3 = ordered_callback(3)
 
-          promise:thenCall(nil, handler1)
-          promise:thenCall(nil, handler2)
-          promise:thenCall(nil, handler3)
+          promise:and_then(nil, handler1)
+          promise:and_then(nil, handler2)
+          promise:and_then(nil, handler3)
 
-          promise:thenCall(nil, function()
+          promise:and_then(nil, function()
             assert.are.same(content, { 1, 2, 3 })
             done()
           end)
@@ -312,13 +312,13 @@ describe("2.2.6: `next` may be called multiple times on the same promise.", func
             local handler2 = ordered_callback(2)
             local handler3 = ordered_callback(3)
 
-            promise:thenCall(nil, function()
+            promise:and_then(nil, function()
               handler1()
-              promise:thenCall(nil, handler3)
+              promise:and_then(nil, handler3)
             end)
-            promise:thenCall(nil, handler2)
+            promise:and_then(nil, handler2)
 
-            promise:thenCall(nil, function()
+            promise:and_then(nil, function()
               -- Give implementations a bit of extra time to flush their internal queue, if necessary.
               Timers.set_timeout(function()
                 assert.are.same(content, { 1, 2, 3 })

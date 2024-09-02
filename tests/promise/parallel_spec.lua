@@ -29,7 +29,7 @@ describe("Promise.parallel", function()
     }
 
     Promise.parallel(tasks)
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({ 1, 2, 3 }, results)
         done()
       end)
@@ -64,7 +64,7 @@ describe("Promise.parallel", function()
     }
 
     Promise.parallel(tasks)
-      :thenCall(function(results)
+      :and_then(function(results)
         error("Promise.parallel should have rejected")
       end)
       :catch(function(err)
@@ -75,7 +75,7 @@ describe("Promise.parallel", function()
 
   async_it("resolves immediately if given an empty list", function(done)
     Promise.parallel({})
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({}, results)
         done()
       end)
@@ -108,7 +108,7 @@ describe("Promise.parallel", function()
     }
 
     Promise.parallel(tasks)
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({ 1, 2, 3 }, results)
         done()
       end)
@@ -139,7 +139,7 @@ describe("Promise.parallel", function()
     }
 
     Promise.parallel(tasks)
-      :thenCall(function(results)
+      :and_then(function(results)
         error("Promise.parallel should have rejected")
       end)
       :catch(function(err)

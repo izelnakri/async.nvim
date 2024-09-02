@@ -25,7 +25,7 @@ describe("Promise.auto", function()
       },
     }
 
-    Promise.auto(tasks):thenCall(function(results)
+    Promise.auto(tasks):and_then(function(results)
       assert.are.same({
         task1 = "Result from task1",
         task2 = "Result from task2",
@@ -67,7 +67,7 @@ describe("Promise.auto", function()
       },
     }
 
-    Promise.auto(tasks):thenCall(function(results)
+    Promise.auto(tasks):and_then(function(results)
       assert.are.same({
         task1 = "Result from task1",
         task2 = "Result from task1 -> Result from task2",
@@ -110,7 +110,7 @@ describe("Promise.auto", function()
       },
     }
 
-    Promise.auto(tasks):thenCall(function(results)
+    Promise.auto(tasks):and_then(function(results)
       assert.are.same({
         task1 = "Result from task1",
         task2 = "Result from task2",
@@ -142,7 +142,7 @@ describe("Promise.auto", function()
       },
     }
 
-    Promise.auto(tasks):thenCall(function(results)
+    Promise.auto(tasks):and_then(function(results)
       assert.are.same({
         task1 = "Result from task1",
         task2 = "Result from task2 with no dependencies",
@@ -157,7 +157,7 @@ describe("Promise.auto", function()
       task2 = { "task1", function() end },
     }
 
-    Promise.auto(tasks):thenCall(function() end):catch(function(err)
+    Promise.auto(tasks):and_then(function() end):catch(function(err)
       assert.has.match("Circular dependency detected", err)
       done()
     end)
@@ -168,7 +168,7 @@ describe("Promise.auto", function()
       task1 = { "task2", function() end },
     }
 
-    Promise.auto(tasks):thenCall(function() end):catch(function(err)
+    Promise.auto(tasks):and_then(function() end):catch(function(err)
       assert.has.match("Task 'task2' not found", err)
       done()
     end)
@@ -198,7 +198,7 @@ describe("Promise.auto", function()
     }
 
     Promise.auto(tasks)
-      :thenCall(function()
+      :and_then(function()
         -- This should not be called
         error("Promise.auto should not resolve when a task fails")
       end)
@@ -229,7 +229,7 @@ describe("Promise.auto", function()
       },
     }
 
-    Promise.auto(tasks):thenCall(function(results)
+    Promise.auto(tasks):and_then(function(results)
       assert.are.same({
         task1 = "Result from task1",
         task2 = "Result from task1 -> Result from task2",

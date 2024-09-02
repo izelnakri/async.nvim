@@ -9,11 +9,11 @@ describe(
     async_it("via return from a fulfilled promise", function(done)
       local promise
 
-      promise = Promise.resolve(dummy):thenCall(function()
+      promise = Promise.resolve(dummy):and_then(function()
         return promise
       end)
 
-      promise:thenCall(nil, function(reason)
+      promise:and_then(nil, function(reason)
         assert.is_truthy(string.find(reason, "TypeError"))
         done()
       end)
@@ -22,11 +22,11 @@ describe(
     async_it("via return from a rejected promise", function(done)
       local promise
 
-      promise = Promise.reject(dummy):thenCall(nil, function()
+      promise = Promise.reject(dummy):and_then(nil, function()
         return promise
       end)
 
-      promise:thenCall(nil, function(reason)
+      promise:and_then(nil, function(reason)
         assert.is_truthy(string.find(reason, "TypeError"))
         done()
       end)

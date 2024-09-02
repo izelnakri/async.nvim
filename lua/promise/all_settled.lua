@@ -19,10 +19,10 @@ return function(list)
     end
 
     for i, item in ipairs(list) do
-      if type(item) == "table" and type(item.thenCall) == "function" then
-        item:thenCall(function(value)
-          if type(value) == "table" and type(value.thenCall) == "function" then
-            value:thenCall(function(resolvedValue)
+      if type(item) == "table" and type(item.and_then) == "function" then
+        item:and_then(function(value)
+          if type(value) == "table" and type(value.and_then) == "function" then
+            value:and_then(function(resolvedValue)
               settle("fulfilled", i, resolvedValue)
             end, function(reason)
               settle("rejected", i, reason)

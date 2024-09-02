@@ -15,7 +15,7 @@ describe("Promise.Promise.all_settled", function()
     end)
 
     Promise.all_settled({ promise1, promise2, promise3 })
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({
           { status = "fulfilled", value = 1 },
           { status = "fulfilled", value = 2 },
@@ -40,7 +40,7 @@ describe("Promise.Promise.all_settled", function()
     end)
 
     Promise.all_settled({ promise1, promise2, promise3 })
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({
           { status = "rejected", value = "Error 1" },
           { status = "rejected", value = "Error 2" },
@@ -65,7 +65,7 @@ describe("Promise.Promise.all_settled", function()
     end)
 
     Promise.all_settled({ promise1, promise2, promise3 })
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({
           { status = "fulfilled", value = 1 },
           { status = "rejected", value = "Error 2" },
@@ -86,7 +86,7 @@ describe("Promise.Promise.all_settled", function()
     local value2 = 3
 
     Promise.all_settled({ value1, promise1, value2 })
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({
           { status = "fulfilled", value = 1 },
           { status = "fulfilled", value = 2 },
@@ -101,7 +101,7 @@ describe("Promise.Promise.all_settled", function()
 
   async_it("resolves immediately with an empty array", function(done)
     Promise.all_settled({})
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({}, results)
         done()
       end)
@@ -130,7 +130,7 @@ describe("Promise.Promise.all_settled", function()
     end)
 
     Promise.all_settled({ promise1, promise2, promise3 })
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({
           { status = "fulfilled", value = 1 },
           { status = "rejected", value = "Error 2" },
@@ -149,7 +149,7 @@ describe("Promise.Promise.all_settled", function()
     end)
 
     Promise.all_settled({ promise })
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({
           { status = "fulfilled", value = 1 },
         }, results)
@@ -166,7 +166,7 @@ describe("Promise.Promise.all_settled", function()
     end)
 
     Promise.all_settled({ promise })
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({
           { status = "rejected", value = "Error 1" },
         }, results)
@@ -184,7 +184,7 @@ describe("Promise.Promise.all_settled", function()
     local complexObject = { nested = { 1, 2, 3 }, key = "value" }
 
     Promise.all_settled({ promise1, complexObject })
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({
           { status = "fulfilled", value = { key = "value" } },
           { status = "fulfilled", value = { nested = { 1, 2, 3 }, key = "value" } },
@@ -198,7 +198,7 @@ describe("Promise.Promise.all_settled", function()
 
   async_it("handles promise-like objects correctly", function(done)
     local promiseLike = {
-      thenCall = function(self, onFulfilled, onRejected)
+      and_then = function(self, onFulfilled, onRejected)
         onFulfilled(42)
       end,
     }
@@ -208,7 +208,7 @@ describe("Promise.Promise.all_settled", function()
     end)
 
     Promise.all_settled({ promise1, promiseLike })
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({
           { status = "fulfilled", value = 1 },
           { status = "fulfilled", value = 42 },
@@ -222,7 +222,7 @@ describe("Promise.Promise.all_settled", function()
 
   async_it("handles rejected promise-like objects correctly", function(done)
     local promiseLike = {
-      thenCall = function(self, onFulfilled, onRejected)
+      and_then = function(self, onFulfilled, onRejected)
         onRejected("Rejected by promise-like")
       end,
     }
@@ -232,7 +232,7 @@ describe("Promise.Promise.all_settled", function()
     end)
 
     Promise.all_settled({ promise1, promiseLike })
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({
           { status = "fulfilled", value = 1 },
           { status = "rejected", value = "Rejected by promise-like" },
@@ -258,7 +258,7 @@ describe("Promise.Promise.all_settled", function()
     end)
 
     Promise.all_settled({ promise1, promise2 })
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same(results[1].status, "fulfilled")
         assert.are.same(results[2].status, "rejected")
         done()

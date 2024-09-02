@@ -8,7 +8,7 @@ local sentinel = { sentinel = "sentinel" } -- a sentinel fulfillment value to te
 
 local function testPromiseResolution(it, xFactory, test)
   it("via return from a fulfilled promise", function(done)
-    local promise = Promise.resolve(dummy):thenCall(function()
+    local promise = Promise.resolve(dummy):and_then(function()
       return xFactory()
     end)
 
@@ -16,7 +16,7 @@ local function testPromiseResolution(it, xFactory, test)
   end)
 
   it("via return from a rejected promise", function(done)
-    local promise = Promise.reject(dummy):thenCall(nil, function()
+    local promise = Promise.reject(dummy):and_then(nil, function()
       return xFactory()
     end)
 
@@ -34,7 +34,7 @@ describe("2.3.2: If `x` is a promise, adopt its state", function()
       local fulfillment = spy.new(function() end)
       local rejection = spy.new(function() end)
 
-      promise:thenCall(fulfillment, rejection)
+      promise:and_then(fulfillment, rejection)
 
       Timers.set_timeout(function()
         assert.spy(fulfillment).was_not_called()
@@ -52,7 +52,7 @@ describe("2.3.2: If `x` is a promise, adopt its state", function()
       end
 
       testPromiseResolution(async_it, xFactory, function(promise, done)
-        promise:thenCall(function(value)
+        promise:and_then(function(value)
           assert.are.equals(value, sentinel)
           done()
         end)
@@ -71,7 +71,7 @@ describe("2.3.2: If `x` is a promise, adopt its state", function()
       end
 
       testPromiseResolution(async_it, xFactory, function(promise, done)
-        promise:thenCall(function(value)
+        promise:and_then(function(value)
           assert.are_equals(value, sentinel)
           done()
         end)
@@ -86,7 +86,7 @@ describe("2.3.2: If `x` is a promise, adopt its state", function()
       end
 
       testPromiseResolution(async_it, xFactory, function(promise, done)
-        promise:thenCall(nil, function(reason)
+        promise:and_then(nil, function(reason)
           assert.are_equals(reason, sentinel)
           done()
         end)
@@ -105,7 +105,7 @@ describe("2.3.2: If `x` is a promise, adopt its state", function()
       end
 
       testPromiseResolution(async_it, xFactory, function(promise, done)
-        promise:thenCall(nil, function(reason)
+        promise:and_then(nil, function(reason)
           assert.are_equals(reason, sentinel)
           done()
         end)

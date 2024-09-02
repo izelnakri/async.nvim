@@ -12,7 +12,7 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
     "2.2.2.1: it must be called after `promise` is fulfilled, with `promise`’s fulfillment value as its first argument.",
     function()
       Helper.test_fulfilled(it, sentinel, function(promise, done)
-        promise:thenCall(function(value)
+        promise:and_then(function(value)
           assert.are.equal(value, sentinel)
           done()
         end)
@@ -25,7 +25,7 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
       local promise, resolve = Promise.with_resolvers()
       local fulfillment = spy.new(function() end)
 
-      promise:thenCall(fulfillment)
+      promise:and_then(fulfillment)
 
       Timers.set_timeout(function()
         resolve(dummy)
@@ -41,7 +41,7 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
       local promise = Promise:new(function() end)
       local fulfillment = spy.new(function() end)
 
-      promise:thenCall(fulfillment)
+      promise:and_then(fulfillment)
 
       Timers.set_timeout(function()
         assert.spy(fulfillment).was_not_called()
@@ -53,7 +53,7 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
   describe("2.2.2.3: it must not be called more than once.", function()
     async_it("already-fulfilled", function(done)
       local callback = spy.new(function() end)
-      Promise.resolve(dummy):thenCall(callback)
+      Promise.resolve(dummy):and_then(callback)
 
       Timers.set_timeout(function()
         assert.spy(callback).was_called(1)
@@ -65,7 +65,7 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
       local promise, resolve = Promise.with_resolvers()
 
       local callback = spy.new(function() end)
-      promise:thenCall(callback)
+      promise:and_then(callback)
 
       resolve(dummy)
       resolve(dummy)
@@ -80,7 +80,7 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
       local promise, resolve = Promise.with_resolvers()
       local callback = spy.new(function() end)
 
-      promise:thenCall(callback)
+      promise:and_then(callback)
 
       Timers.set_timeout(function()
         resolve(dummy)
@@ -97,7 +97,7 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
       local promise, resolve = Promise.with_resolvers()
 
       local callback = spy.new(function() end)
-      promise:thenCall(callback)
+      promise:and_then(callback)
 
       resolve(dummy)
 
@@ -118,14 +118,14 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
       local callback_2 = spy.new(function() end)
       local callback_3 = spy.new(function() end)
 
-      promise:thenCall(callback_1)
+      promise:and_then(callback_1)
 
       Timers.set_timeout(function()
-        promise:thenCall(callback_2)
+        promise:and_then(callback_2)
       end, 50)
 
       Timers.set_timeout(function()
-        promise:thenCall(callback_3)
+        promise:and_then(callback_3)
       end, 100)
 
       Timers.set_timeout(function()
@@ -145,9 +145,9 @@ describe("2.2.2: If `onFulfilled` is a function,", function()
       local callback_1 = spy.new(function() end)
       local callback_2 = spy.new(function() end)
 
-      promise:thenCall(callback_1)
+      promise:and_then(callback_1)
       resolve(dummy)
-      promise:thenCall(callback_2)
+      promise:and_then(callback_2)
 
       Timers.set_timeout(function()
         assert.spy(callback_1).was_called(1)

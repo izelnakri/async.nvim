@@ -57,7 +57,7 @@ return function(inputs)
 
       -- If no dependencies, run the task immediately
       if #taskDependencies == 0 then
-        local promise = Promise.resolve():thenCall(taskFn):thenCall(function(result)
+        local promise = Promise.resolve():and_then(taskFn):and_then(function(result)
           results[taskName] = result
           return result
         end)
@@ -78,10 +78,10 @@ return function(inputs)
 
       -- Run task after all dependencies are resolved
       local promise = Promise.all(dependencyPromises)
-        :thenCall(function(depResults)
+        :and_then(function(depResults)
           return taskFn(unpack(depResults))
         end)
-        :thenCall(function(result)
+        :and_then(function(result)
           results[taskName] = result
           return result
         end)
@@ -98,7 +98,7 @@ return function(inputs)
 
     -- Wait for all tasks to complete
     Promise.all(allPromises)
-      :thenCall(function()
+      :and_then(function()
         resolve(results)
       end)
       :catch(function(err)

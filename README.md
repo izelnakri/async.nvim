@@ -9,7 +9,7 @@ local Promise = require("promise")
 
 local promise = Promise:new(function(resolve, reject)
   resolve("some result")
-end):thenCall(function(result)
+end):and_then(function(result)
   vim.print("this gets called with some result: " .. result)
 end):catch(function(err)
   vim.print("no error here, this doesnt get called")
@@ -60,7 +60,7 @@ correct and memory efficient, handles edge cases like stack overflow on large co
     -- promise example
     local promise = Promise:new(function(resolve, reject)
       resolve({ last_name = "Nakri" })
-    end):thenCall(function(result)
+    end):and_then(function(result)
       vim.print("last_name should be: " .. result.last_name)
     end)
     local me = await(promise)

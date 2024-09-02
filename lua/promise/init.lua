@@ -49,9 +49,8 @@ function Promise.await(promise)
     errored = true
   end
 
-  promise:thenCall(handleResolution, handleRejection)
+  promise:and_then(handleResolution, handleRejection)
 
-  -- Use vim.wait to periodically check the promise state
   while not resolved and not errored do
     vim.wait(10, function()
       -- Return false to continue waiting

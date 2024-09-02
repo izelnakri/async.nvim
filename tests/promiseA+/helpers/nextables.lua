@@ -8,7 +8,7 @@ local Nextable = {}
 Nextable.fulfilled = {
   ["a synchronously-fulfilled custom nextable"] = function(value)
     return {
-      thenCall = function(instance, onFulfilled)
+      and_then = function(instance, onFulfilled)
         onFulfilled(value)
       end,
     }
@@ -16,7 +16,7 @@ Nextable.fulfilled = {
 
   ["an asynchronously-fulfilled custom nextable"] = function(value)
     return {
-      thenCall = function(instance, onFulfilled)
+      and_then = function(instance, onFulfilled)
         Timers.set_timeout(function()
           onFulfilled(value)
         end, 0)
@@ -30,7 +30,7 @@ Nextable.fulfilled = {
     local x = {}
     local mt = {
       __index = function(table, key)
-        if key == "thenCall" then
+        if key == "and_then" then
           if numberOfTimesNextRetrieved == 0 then
             numberOfTimesNextRetrieved = numberOfTimesNextRetrieved + 1
             return function(instance, onFulfilled)
@@ -45,7 +45,7 @@ Nextable.fulfilled = {
 
   ["a nextable that tries to fulfill twice"] = function(value)
     return {
-      thenCall = function(instance, onFulfilled)
+      and_then = function(instance, onFulfilled)
         onFulfilled(value)
         onFulfilled(other)
       end,
@@ -54,7 +54,7 @@ Nextable.fulfilled = {
 
   ["a nextable that fulfills but then throws"] = function(value)
     return {
-      thenCall = function(instance, onFulfilled)
+      and_then = function(instance, onFulfilled)
         onFulfilled(value)
         error(other)
       end,
@@ -79,7 +79,7 @@ Nextable.fulfilled = {
 Nextable.rejected = {
   ["a synchronously-rejected custom nextable"] = function(reason)
     return {
-      thenCall = function(instance, onFulfilled, onRejected)
+      and_then = function(instance, onFulfilled, onRejected)
         onRejected(reason)
       end,
     }
@@ -87,7 +87,7 @@ Nextable.rejected = {
 
   ["an asynchronously-rejected custom nextable"] = function(reason)
     return {
-      thenCall = function(instance, onFulfilled, onRejected)
+      and_then = function(instance, onFulfilled, onRejected)
         Timers.set_timeout(function()
           onRejected(reason)
         end, 0)
@@ -101,7 +101,7 @@ Nextable.rejected = {
     local x = {}
     local mt = {
       __index = function(table, key)
-        if key == "thenCall" then
+        if key == "and_then" then
           if numberOfTimesNextRetrieved == 0 then
             numberOfTimesNextRetrieved = numberOfTimesNextRetrieved + 1
             return function(instance, onFulfilled, onRejected)
@@ -115,7 +115,7 @@ Nextable.rejected = {
   end,
   ["a nextable that immediately throws in `next`"] = function(reason)
     return {
-      thenCall = function()
+      and_then = function()
         error(reason)
       end,
     }
@@ -124,7 +124,7 @@ Nextable.rejected = {
     local x = {}
     local mt = {
       __index = function(table, key)
-        if key == "thenCall" then
+        if key == "and_then" then
           error(reason)
         end
       end,

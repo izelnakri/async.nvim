@@ -15,7 +15,7 @@ return function(promise_returning_func, ...)
     end
 
     local result = promise_returning_func(unpack(target_arguments))
-    if type(result) == "table" and type(result.thenCall) == "function" then
+    if type(result) == "table" and type(result.and_then) == "function" then
       return result
     end
 

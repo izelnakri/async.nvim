@@ -18,9 +18,9 @@ return function(list)
     end
 
     for i, item in ipairs(list) do
-      if type(item) == "table" and type(item.thenCall) == "function" then
+      if type(item) == "table" and type(item.and_then) == "function" then
         item
-          :thenCall(function(value)
+          :and_then(function(value)
             results[i] = value
             remaining = remaining - 1
             check_completion()

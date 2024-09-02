@@ -13,12 +13,12 @@ return function(tasks)
     for i, task in ipairs(tasks) do
       local result = task()
 
-      if type(result) ~= "table" or type(result.thenCall) ~= "function" then
+      if type(result) ~= "table" or type(result.and_then) ~= "function" then
         return reject("Promise.parallel: all functions must return a promise")
       end
 
       result
-        :thenCall(function(value)
+        :and_then(function(value)
           if has_rejected then
             return
           end

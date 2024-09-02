@@ -79,7 +79,7 @@ Helper.reasons = {
     return {}
   end,
   ["an always-pending nextable"] = function()
-    return { thenCall = function() end }
+    return { and_then = function() end }
   end,
   ["a fulfilled promise"] = function()
     return Helper.resolved(dummy)

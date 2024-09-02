@@ -25,7 +25,7 @@ describe("Promise.series", function()
     end
 
     Promise.series({ task1, task2 })
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({ "Result 1", "Result 2" }, results)
         assert.are.same({ "task1", "task2" }, call_order)
         done()
@@ -53,7 +53,7 @@ describe("Promise.series", function()
     end
 
     Promise.series({ task1, task2 })
-      :thenCall(function()
+      :and_then(function()
         error("Promise.series should not resolve if any promise rejects")
       end)
       :catch(function(err)
@@ -64,7 +64,7 @@ describe("Promise.series", function()
 
   async_it("resolves immediately with an empty input list", function(done)
     Promise.series({})
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({}, results)
         done()
       end)
@@ -79,7 +79,7 @@ describe("Promise.series", function()
     end
 
     Promise.series({ task1 })
-      :thenCall(function()
+      :and_then(function()
         error("Promise.series should reject if a function does not return a promise")
       end)
       :catch(function(err)
@@ -102,7 +102,7 @@ describe("Promise.series", function()
     end
 
     Promise.series({ task1, task2 })
-      :thenCall(function()
+      :and_then(function()
         error("Promise.series should not resolve if a function throws an error")
       end)
       :catch(function(err)

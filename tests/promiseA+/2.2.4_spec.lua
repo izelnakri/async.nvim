@@ -12,7 +12,7 @@ describe(
       Helper.test_fulfilled(async_it, dummy, function(promise, done)
         local thenHasReturned = false
 
-        promise:thenCall(function()
+        promise:and_then(function()
           assert.is_true(thenHasReturned)
           done()
         end)
@@ -23,7 +23,7 @@ describe(
       Helper.test_rejected(async_it, dummy, function(promise, done)
         local thenHasReturned = false
 
-        promise:thenCall(nil, function()
+        promise:and_then(nil, function()
           assert.is_true(thenHasReturned)
           done()
         end)
@@ -37,7 +37,7 @@ describe(
         local promise, resolve = Promise.with_resolvers()
         local onFulfilledCalled = false
 
-        promise:thenCall(function()
+        promise:and_then(function()
           onFulfilledCalled = true
         end)
 
@@ -52,7 +52,7 @@ describe(
 
         resolve(dummy)
 
-        promise:thenCall(function()
+        promise:and_then(function()
           onFulfilledCalled = true
         end)
 
@@ -63,8 +63,8 @@ describe(
         local promise = Promise.resolve(dummy)
         local firstOnFulfilledFinished = false
 
-        promise:thenCall(function()
-          promise:thenCall(function()
+        promise:and_then(function()
+          promise:and_then(function()
             assert.is_true(firstOnFulfilledFinished)
             done()
           end)
@@ -77,8 +77,8 @@ describe(
         local promise2 = Promise.resolve(dummy)
         local firstOnRejectedFinished = false
 
-        promise:thenCall(nil, function()
-          promise2:thenCall(function()
+        promise:and_then(nil, function()
+          promise2:and_then(function()
             assert.is_true(firstOnRejectedFinished)
             done()
           end)
@@ -95,7 +95,7 @@ describe(
           firstStackFinished = true
         end, 0)
 
-        promise:thenCall(function()
+        promise:and_then(function()
           assert.is_true(firstStackFinished)
           done()
         end)
@@ -107,7 +107,7 @@ describe(
         local promise, _, reject = Promise.with_resolvers()
         local onRejectedCalled = false
 
-        promise:thenCall(nil, function()
+        promise:and_then(nil, function()
           onRejectedCalled = true
         end)
 
@@ -122,7 +122,7 @@ describe(
 
         reject(dummy)
 
-        promise:thenCall(nil, function()
+        promise:and_then(nil, function()
           onRejectedCalled = true
         end)
 
@@ -134,8 +134,8 @@ describe(
         local promise2 = Promise.reject(dummy)
         local firstOnFulfilledFinished = false
 
-        promise:thenCall(function()
-          promise2:thenCall(nil, function()
+        promise:and_then(function()
+          promise2:and_then(nil, function()
             assert.is_true(firstOnFulfilledFinished)
             done()
           end)
@@ -147,8 +147,8 @@ describe(
         local promise = Promise.reject(dummy)
         local firstOnRejectedFinished = false
 
-        promise:thenCall(nil, function()
-          promise:thenCall(nil, function()
+        promise:and_then(nil, function()
+          promise:and_then(nil, function()
             assert.is_true(firstOnRejectedFinished)
             done()
           end)
@@ -165,7 +165,7 @@ describe(
           firstStackFinished = true
         end, 0)
 
-        promise:thenCall(nil, function()
+        promise:and_then(nil, function()
           assert.is_true(firstStackFinished)
           done()
         end)

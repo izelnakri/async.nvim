@@ -12,7 +12,7 @@ local sentinelArray = { sentinel } -- a sentinel fulfillment value to test when 
 
 local function testPromiseResolution(it, xFactory, test)
   it("via return from a fulfilled promise", function(done)
-    local promise = Promise.resolve(dummy):thenCall(function()
+    local promise = Promise.resolve(dummy):and_then(function()
       return xFactory()
     end)
 
@@ -20,7 +20,7 @@ local function testPromiseResolution(it, xFactory, test)
   end)
 
   it("via return from a rejected promise", function(done)
-    local promise = Promise.reject(dummy):thenCall(nil, function()
+    local promise = Promise.reject(dummy):and_then(nil, function()
       return xFactory()
     end)
 
@@ -34,7 +34,7 @@ local function testCallingResolvePromise(yFactory, stringRepresentation, test)
       local function xFactory()
         return {
           type = "synchronous resolution",
-          thenCall = function(instance, resolvePromise)
+          and_then = function(instance, resolvePromise)
             resolvePromise(yFactory())
           end,
         }
@@ -47,7 +47,7 @@ local function testCallingResolvePromise(yFactory, stringRepresentation, test)
       local function xFactory()
         return {
           type = "asynchronous resolution",
-          thenCall = function(instance, resolvePromise)
+          and_then = function(instance, resolvePromise)
             Timers.set_timeout(function()
               resolvePromise(yFactory())
             end, 0)
@@ -65,7 +65,7 @@ local function testCallingRejectPromise(r, stringRepresentation, test)
     describe("`next` calls `rejectPromise` synchronously", function()
       local function xFactory()
         return {
-          thenCall = function(instance, resolvePromise, rejectPromise)
+          and_then = function(instance, resolvePromise, rejectPromise)
             rejectPromise(r)
           end,
         }
@@ -77,7 +77,7 @@ local function testCallingRejectPromise(r, stringRepresentation, test)
     describe("`next` calls `rejectPromise` asynchronously", function()
       local function xFactory()
         return {
-          thenCall = function(instance, resolvePromise, rejectPromise)
+          and_then = function(instance, resolvePromise, rejectPromise)
             Timers.set_timeout(function()
               rejectPromise(r)
             end, 0)
@@ -93,7 +93,7 @@ end
 local function testCallingResolvePromiseFulfillsWith(yFactory, stringRepresentation, fulfillmentValue)
   testCallingResolvePromise(yFactory, stringRepresentation, function(promise, done)
     Timers.set_timeout(function()
-      promise:thenCall(function(value)
+      promise:and_then(function(value)
         assert.are.equals(fulfillmentValue, value)
         done()
       end)
@@ -104,7 +104,7 @@ end
 local function testCallingResolvePromiseRejectsWith(yFactory, stringRepresentation, rejectionReason)
   testCallingResolvePromise(yFactory, stringRepresentation, function(promise, done)
     Timers.set_timeout(function()
-      promise:thenCall(nil, function(reason)
+      promise:and_then(nil, function(reason)
         assert.are.equals(reason, rejectionReason)
         done()
       end)
@@ -115,7 +115,7 @@ end
 local function testCallingRejectPromiseRejectsWith(reason, stringRepresentation)
   testCallingRejectPromise(reason, stringRepresentation, function(promise, done)
     Timers.set_timeout(function()
-      promise:thenCall(nil, function(rejectionReason)
+      promise:and_then(nil, function(rejectionReason)
         assert.are.equals(rejectionReason, reason)
         done()
       end)
@@ -137,7 +137,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
 
         local mt = {
           __index = function(table, key)
-            if key == "thenCall" then
+            if key == "and_then" then
               numberOfTimesNextWasRetrieved = numberOfTimesNextWasRetrieved + 1
               return function(instance, onFulfilled)
                 onFulfilled(dummy)
@@ -152,7 +152,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
 
       testPromiseResolution(async_it, xFactory, function(promise, done)
         Timers.set_timeout(function()
-          promise:thenCall(function()
+          promise:and_then(function()
             assert.are.equals(1, numberOfTimesNextWasRetrieved)
             done()
           end)
@@ -169,7 +169,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           local x = {}
           local mt = {
             __index = function(table, key)
-              if key == "thenCall" then
+              if key == "and_then" then
                 error(e)
               end
             end,
@@ -181,7 +181,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
 
         describe("`e` is " .. stringRepresentation, function()
           testPromiseResolution(async_it, xFactory, function(promise, done)
-            promise:thenCall(nil, function(reason)
+            promise:and_then(nil, function(reason)
               assert.are.equals(reason, e)
               done()
             end)
@@ -203,7 +203,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           local x
           x = {
             line = 200,
-            thenCall = function(promise, onFulfilled, onRejected)
+            and_then = function(promise, onFulfilled, onRejected)
               assert.are.equals(promise, x)
               assert.are.equals(type(onFulfilled), "function")
               assert.are.equals(type(onRejected), "function")
@@ -216,7 +216,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
 
         testPromiseResolution(async_it, xFactory, function(promise, done)
           Timers.set_timeout(function()
-            promise:thenCall(function()
+            promise:and_then(function()
               done()
             end)
           end, 100)
@@ -296,7 +296,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("calling `resolvePromise` then `rejectPromise`, both synchronously", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise, rejectPromise)
+                and_then = function(instance, resolvePromise, rejectPromise)
                   resolvePromise(sentinel)
                   rejectPromise(other)
                 end,
@@ -304,7 +304,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(function(value)
+              promise:and_then(function(value)
                 assert.are.equals(value, sentinel)
                 done()
               end)
@@ -314,7 +314,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("calling `resolvePromise` synchronously then `rejectPromise` asynchronously", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise, rejectPromise)
+                and_then = function(instance, resolvePromise, rejectPromise)
                   resolvePromise(sentinel)
 
                   Timers.set_timeout(function()
@@ -325,7 +325,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(function(value)
+              promise:and_then(function(value)
                 assert.are.equals(value, sentinel)
                 done()
               end)
@@ -335,7 +335,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("calling `resolvePromise` then `rejectPromise`, both asynchronously", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise, rejectPromise)
+                and_then = function(instance, resolvePromise, rejectPromise)
                   Timers.set_timeout(function()
                     resolvePromise(sentinel)
                   end, 50)
@@ -348,7 +348,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(function(value)
+              promise:and_then(function(value)
                 assert.are.equals(value, sentinel)
                 done()
               end)
@@ -365,7 +365,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
                 end, 50)
 
                 return {
-                  thenCall = function(instance, resolvePromise, rejectPromise)
+                  and_then = function(instance, resolvePromise, rejectPromise)
                     resolvePromise(promise)
                     rejectPromise(other)
                   end,
@@ -373,7 +373,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
               end
 
               testPromiseResolution(async_it, xFactory, function(promise, done)
-                promise:thenCall(function(value)
+                promise:and_then(function(value)
                   assert.are.equals(value, sentinel)
                   done()
                 end)
@@ -391,7 +391,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
                 end, 50)
 
                 return {
-                  thenCall = function(instance, resolvePromise, rejectPromise)
+                  and_then = function(instance, resolvePromise, rejectPromise)
                     resolvePromise(promise)
                     rejectPromise(other)
                   end,
@@ -399,7 +399,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
               end
 
               testPromiseResolution(async_it, xFactory, function(promise, done)
-                promise:thenCall(nil, function(reason)
+                promise:and_then(nil, function(reason)
                   assert.are.equals(reason, sentinel)
                   done()
                 end)
@@ -410,7 +410,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("calling `rejectPromise` then `resolvePromise`, both synchronously", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise, rejectPromise)
+                and_then = function(instance, resolvePromise, rejectPromise)
                   rejectPromise(sentinel)
                   resolvePromise(other)
                 end,
@@ -418,7 +418,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(nil, function(reason)
+              promise:and_then(nil, function(reason)
                 assert.are.equals(reason, sentinel)
                 done()
               end)
@@ -428,7 +428,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("calling `rejectPromise` synchronously then `resolvePromise` asynchronously", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise, rejectPromise)
+                and_then = function(instance, resolvePromise, rejectPromise)
                   rejectPromise(sentinel)
 
                   Timers.set_timeout(function()
@@ -439,7 +439,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(nil, function(reason)
+              promise:and_then(nil, function(reason)
                 assert.are.equals(reason, sentinel)
                 done()
               end)
@@ -449,7 +449,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("calling `rejectPromise` then `resolvePromise`, both asynchronously", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise, rejectPromise)
+                and_then = function(instance, resolvePromise, rejectPromise)
                   Timers.set_timeout(function()
                     rejectPromise(sentinel)
                   end, 50)
@@ -462,7 +462,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(nil, function(reason)
+              promise:and_then(nil, function(reason)
                 assert.are.equals(reason, sentinel)
                 done()
               end)
@@ -472,7 +472,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("calling `resolvePromise` twice synchronously", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise)
+                and_then = function(instance, resolvePromise)
                   resolvePromise(sentinel)
                   resolvePromise(other)
                 end,
@@ -480,7 +480,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(function(value)
+              promise:and_then(function(value)
                 assert.are.equals(value, sentinel)
                 done()
               end)
@@ -490,7 +490,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("calling `resolvePromise` twice, first synchronously then asynchronously", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise)
+                and_then = function(instance, resolvePromise)
                   resolvePromise(sentinel)
 
                   Timers.set_timeout(function()
@@ -501,7 +501,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(function(value)
+              promise:and_then(function(value)
                 assert.are.equals(value, sentinel)
                 done()
               end)
@@ -511,7 +511,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("calling `resolvePromise` twice, both times asynchronously", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise)
+                and_then = function(instance, resolvePromise)
                   Timers.set_timeout(function()
                     resolvePromise(sentinel)
                   end, 10)
@@ -524,7 +524,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(function(value)
+              promise:and_then(function(value)
                 assert.are.equals(sentinel, value)
                 done()
               end)
@@ -542,7 +542,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
                 end, 10)
 
                 return {
-                  thenCall = function(instance, resolvePromise)
+                  and_then = function(instance, resolvePromise)
                     resolvePromise(promise)
                     resolvePromise(other)
                   end,
@@ -550,7 +550,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
               end
 
               testPromiseResolution(async_it, xFactory, function(promise, done)
-                promise:thenCall(function(value)
+                promise:and_then(function(value)
                   assert.are.equals(value, sentinel)
                   done()
                 end)
@@ -569,7 +569,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
                 end, 50)
 
                 return {
-                  thenCall = function(instance, resolvePromise)
+                  and_then = function(instance, resolvePromise)
                     resolvePromise(promise)
                     resolvePromise(other)
                   end,
@@ -577,7 +577,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
               end
 
               testPromiseResolution(async_it, xFactory, function(promise, done)
-                promise:thenCall(nil, function(reason)
+                promise:and_then(nil, function(reason)
                   assert.are.equals(reason, sentinel)
                   done()
                 end)
@@ -588,7 +588,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("calling `rejectPromise` twice synchronously", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise, rejectPromise)
+                and_then = function(instance, resolvePromise, rejectPromise)
                   rejectPromise(sentinel)
                   rejectPromise(other)
                 end,
@@ -596,7 +596,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(nil, function(reason)
+              promise:and_then(nil, function(reason)
                 assert.are.equals(reason, sentinel)
                 done()
               end)
@@ -606,7 +606,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("calling `rejectPromise` twice, first synchronously then asynchronously", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise, rejectPromise)
+                and_then = function(instance, resolvePromise, rejectPromise)
                   rejectPromise(sentinel)
 
                   Timers.set_timeout(function()
@@ -617,7 +617,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(nil, function(reason)
+              promise:and_then(nil, function(reason)
                 assert.are.equals(reason, sentinel)
                 done()
               end)
@@ -627,7 +627,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("calling `rejectPromise` twice, both times asynchronously", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise, rejectPromise)
+                and_then = function(instance, resolvePromise, rejectPromise)
                   Timers.set_timeout(function()
                     rejectPromise(sentinel)
                   end, 10)
@@ -640,7 +640,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(nil, function(reason)
+              promise:and_then(nil, function(reason)
                 assert.are.equals(reason, sentinel)
                 done()
               end)
@@ -652,7 +652,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
 
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise, rejectPromise)
+                and_then = function(instance, resolvePromise, rejectPromise)
                   savedResolvePromise = resolvePromise
                   savedRejectPromise = rejectPromise
                 end,
@@ -668,7 +668,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
               local timesFulfilled = 0
               local timesRejected = 0
 
-              promise:thenCall(function()
+              promise:and_then(function()
                 timesFulfilled = timesFulfilled + 1
               end, function()
                 timesRejected = timesRejected + 1
@@ -703,7 +703,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("`resolvePromise` was called with a non-nextable", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise)
+                and_then = function(instance, resolvePromise)
                   resolvePromise(sentinel)
                   error(other)
                 end,
@@ -711,7 +711,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(function(value)
+              promise:and_then(function(value)
                 assert.are.equals(value, sentinel)
                 done()
               end)
@@ -726,7 +726,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
               end, 50)
 
               return {
-                thenCall = function(instance, resolvePromise)
+                and_then = function(instance, resolvePromise)
                   resolvePromise(promise)
                   error(other)
                 end,
@@ -734,7 +734,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(function(value)
+              promise:and_then(function(value)
                 assert.are.equals(value, sentinel)
                 done()
               end)
@@ -749,7 +749,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
               end, 50)
 
               return {
-                thenCall = function(instance, resolvePromise)
+                and_then = function(instance, resolvePromise)
                   resolvePromise(promise)
                   error(other)
                 end,
@@ -757,7 +757,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(nil, function(reason)
+              promise:and_then(nil, function(reason)
                 assert.are.equals(reason, sentinel)
                 done()
               end)
@@ -767,7 +767,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("`rejectPromise` was called", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise, rejectPromise)
+                and_then = function(instance, resolvePromise, rejectPromise)
                   rejectPromise(sentinel)
                   error(other)
                 end,
@@ -775,7 +775,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(nil, function(reason)
+              promise:and_then(nil, function(reason)
                 assert.are.equals(reason, sentinel)
                 done()
               end)
@@ -785,7 +785,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("`resolvePromise` then `rejectPromise` were called", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise, rejectPromise)
+                and_then = function(instance, resolvePromise, rejectPromise)
                   resolvePromise(sentinel)
                   rejectPromise(other)
                   error(other)
@@ -794,7 +794,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(function(value)
+              promise:and_then(function(value)
                 assert.are.equals(value, sentinel)
                 done()
               end)
@@ -804,7 +804,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("`rejectPromise` then `resolvePromise` were called", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise, rejectPromise)
+                and_then = function(instance, resolvePromise, rejectPromise)
                   rejectPromise(sentinel)
                   resolvePromise(other)
                   error(other)
@@ -813,7 +813,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(nil, function(reason)
+              promise:and_then(nil, function(reason)
                 assert.are.equals(reason, sentinel)
                 done()
               end)
@@ -825,14 +825,14 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("straightforward case", function()
             local function xFactory()
               return {
-                thenCall = function()
+                and_then = function()
                   error(sentinel)
                 end,
               }
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(nil, function(reason)
+              promise:and_then(nil, function(reason)
                 assert.are.equals(reason, sentinel)
                 done()
               end)
@@ -842,7 +842,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("`resolvePromise` is called asynchronously before the `throw`", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise)
+                and_then = function(instance, resolvePromise)
                   Timers.set_timeout(function()
                     resolvePromise(other)
                   end, 0)
@@ -852,7 +852,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(nil, function(reason)
+              promise:and_then(nil, function(reason)
                 assert.are.equals(reason, sentinel)
                 done()
               end)
@@ -862,7 +862,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
           describe("`rejectPromise` is called asynchronously before the `throw`", function()
             local function xFactory()
               return {
-                thenCall = function(instance, resolvePromise, rejectPromise)
+                and_then = function(instance, resolvePromise, rejectPromise)
                   Timers.set_timeout(function()
                     rejectPromise(other)
                   end, 0)
@@ -872,7 +872,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
             end
 
             testPromiseResolution(async_it, xFactory, function(promise, done)
-              promise:thenCall(nil, function(reason)
+              promise:and_then(nil, function(reason)
                 assert.are.equals(reason, sentinel)
                 done()
               end)
@@ -884,7 +884,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
   )
 
   describe("2.3.3.4: If `next` is not a function, fulfill promise with `x`", function()
-    local function testFulfillViaNonFunction(thenCall, stringRepresentation)
+    local function testFulfillViaNonFunction(and_then, stringRepresentation)
       describe("`next` is " .. stringRepresentation, function()
         local x = nil
 
@@ -893,12 +893,12 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
         end
 
         before_each(function()
-          x = { thenCall = thenCall }
+          x = { and_then = and_then }
         end)
 
         testPromiseResolution(async_it, xFactory, function(promise, done)
           Timers.set_timeout(function()
-            promise:thenCall(function(value)
+            promise:and_then(function(value)
               assert.are.equals(value, x)
               done()
             end)

@@ -17,9 +17,9 @@ return function(tasks)
       if not status then
         reject(result)
       else
-        if type(result) == "table" and type(result.thenCall) == "function" then
+        if type(result) == "table" and type(result.and_then) == "function" then
           result
-            :thenCall(function(nextResult)
+            :and_then(function(nextResult)
               next(index + 1, nextResult)
             end)
             :catch(function(err)

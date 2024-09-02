@@ -17,7 +17,7 @@ describe("Promise.hash", function()
     }
 
     Promise.hash(promises)
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({ first = 1, second = 2, third = 3 }, results)
         done()
       end)
@@ -40,7 +40,7 @@ describe("Promise.hash", function()
     }
 
     Promise.hash(promises)
-      :thenCall(function()
+      :and_then(function()
         error("Promise.hash should not resolve when one promise rejects.")
       end)
       :catch(function(reason)
@@ -59,7 +59,7 @@ describe("Promise.hash", function()
     }
 
     Promise.hash(promises)
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({ first = 1, second = 2, third = "non-promise" }, results)
         done()
       end)
@@ -70,7 +70,7 @@ describe("Promise.hash", function()
 
   async_it("resolves immediately with an empty hash", function(done)
     Promise.hash({})
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({}, results)
         done()
       end)
@@ -92,7 +92,7 @@ describe("Promise.hash", function()
     }
 
     Promise.hash(promises)
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({
           first = 1,
           second = 2,
@@ -119,7 +119,7 @@ describe("Promise.hash", function()
     }
 
     Promise.hash(promises)
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({ b = "B", a = "A" }, results)
         done()
       end)
@@ -139,7 +139,7 @@ describe("Promise.hash", function()
     }
 
     Promise.hash(promises)
-      :thenCall(function()
+      :and_then(function()
         error("Promise.hash should not resolve when the first promise rejects.")
       end)
       :catch(function(reason)
@@ -161,7 +161,7 @@ describe("Promise.hash", function()
     }
 
     Promise.hash(promises)
-      :thenCall(function(results)
+      :and_then(function(results)
         assert.are.same({
           first = { nested = "Nested Resolved" },
           second = "Resolved",

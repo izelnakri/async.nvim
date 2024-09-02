@@ -27,12 +27,12 @@ local function adopt_promise_state(promise, x, resolve, reject)
   end
 
   if x and (type(x) == "table" or is_callable(x)) then
-    local success, thenCall
-    success, thenCall = pcall(function()
-      return x.thenCall
+    local success, and_then
+    success, and_then = pcall(function()
+      return x.and_then
     end)
 
-    if success and is_callable(thenCall) then
+    if success and is_callable(and_then) then
       local called = false
 
       local function resolve_once(y)
@@ -52,7 +52,7 @@ local function adopt_promise_state(promise, x, resolve, reject)
       end
 
       local success_inner, err = pcall(function()
-        thenCall(x, resolve_once, reject_once)
+        and_then(x, resolve_once, reject_once)
       end)
 
       if not success_inner then
@@ -62,7 +62,7 @@ local function adopt_promise_state(promise, x, resolve, reject)
       if success then
         resolve(x)
       else
-        reject(thenCall)
+        reject(and_then)
       end
     end
   else
@@ -79,7 +79,7 @@ return function(Promise, executor)
     _state = "pending", -- 'pending', 'fulfilled', 'rejected'
     _value = nil,
     _reason = nil,
-    _thenCallbacks = {},
+    _and_thenbacks = {},
     _finallyCallbacks = {},
     _triggerUnhandledRejection = function(self, reason)
       if not self._caught then
@@ -101,7 +101,7 @@ return function(Promise, executor)
 
     if newState == "fulfilled" then
       promise._value = result
-      for _, callbackPair in ipairs(promise._thenCallbacks) do
+      for _, callbackPair in ipairs(promise._and_thenbacks) do
         if callbackPair[1] then
           defer(Promise, function()
             callbackPair[1](result)
@@ -110,7 +110,7 @@ return function(Promise, executor)
       end
     elseif newState == "rejected" then
       promise._reason = result
-      for _, callbackPair in ipairs(promise._thenCallbacks) do
+      for _, callbackPair in ipairs(promise._and_thenbacks) do
         if callbackPair[2] then
           defer(Promise, function()
             callbackPair[2](result)
@@ -124,7 +124,7 @@ return function(Promise, executor)
     end
 
     -- Clear callbacks after execution
-    promise._thenCallbacks = nil
+    promise._and_thenbacks = nil
     promise._finallyCallbacks = nil
   end
 
@@ -163,7 +163,7 @@ return function(Promise, executor)
   end)
   coroutine.resume(co)
 
-  function promise:thenCall(onFulfilled, onRejected)
+  function promise:and_then(onFulfilled, onRejected)
     self._caught = true
     local nextPromise
     nextPromise = Promise:new(function(resolve, reject)
@@ -191,7 +191,7 @@ return function(Promise, executor)
       elseif self._state == "rejected" then
         handleCallback(onRejected, self._reason, resolve, reject)
       elseif self._state == "pending" then
-        table.insert(self._thenCallbacks, {
+        table.insert(self._and_thenbacks, {
           function(value)
             handleCallback(onFulfilled, value, resolve, reject)
           end,
@@ -208,7 +208,7 @@ return function(Promise, executor)
   function promise:catch(onRejected)
     self._caught = true
 
-    return self:thenCall(nil, onRejected)
+    return self:and_then(nil, onRejected)
   end
 
   function promise:finally(onFinally)

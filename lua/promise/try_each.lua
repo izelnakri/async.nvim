@@ -16,7 +16,7 @@ return function(promises)
       index = index + 1
 
       currentPromise
-        :thenCall(function(value)
+        :and_then(function(value)
           -- Resolve as soon as the first promise resolves
           resolve(value)
         end)

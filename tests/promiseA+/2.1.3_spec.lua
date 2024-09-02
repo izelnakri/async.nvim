@@ -11,7 +11,7 @@ describe("2.1.3.1: When rejected, a promise: must not transition to any other st
     local fulfillment = spy.new(function() end)
     local rejection = spy.new(function() end)
 
-    promise:thenCall(fulfillment, rejection)
+    promise:and_then(fulfillment, rejection)
 
     Timers.set_timeout(function()
       assert.spy(rejection).was_called()
@@ -26,7 +26,7 @@ describe("2.1.3.1: When rejected, a promise: must not transition to any other st
 
     local promise, resolve, reject = Promise.with_resolvers()
 
-    promise:thenCall(fulfillment, rejection)
+    promise:and_then(fulfillment, rejection)
 
     reject(dummy)
     resolve(dummy)
@@ -45,7 +45,7 @@ describe("2.1.3.1: When rejected, a promise: must not transition to any other st
 
     local promise, resolve, reject = Promise.with_resolvers()
 
-    promise:thenCall(fulfillment, rejection)
+    promise:and_then(fulfillment, rejection)
 
     Timers.set_timeout(function()
       reject(dummy)
@@ -65,7 +65,7 @@ describe("2.1.3.1: When rejected, a promise: must not transition to any other st
 
     local promise, resolve, reject = Promise.with_resolvers()
 
-    promise:thenCall(fulfillment, rejection)
+    promise:and_then(fulfillment, rejection)
 
     reject(dummy)
 

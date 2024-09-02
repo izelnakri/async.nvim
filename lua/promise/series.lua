@@ -22,13 +22,13 @@ return function(inputs)
           return
         end
 
-        if type(promise) ~= "table" or type(promise.thenCall) ~= "function" then
+        if type(promise) ~= "table" or type(promise.and_then) ~= "function" then
           reject("Promise.series: all functions must return a promise")
           return
         end
 
         promise
-          :thenCall(function(result)
+          :and_then(function(result)
             table.insert(results, result)
             next() -- Proceed to the next function in the series
           end)

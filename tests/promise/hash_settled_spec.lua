@@ -13,7 +13,7 @@ describe("Promise.hash_settled", function()
       end),
     }
 
-    Promise.hash_settled(promises):thenCall(function(results)
+    Promise.hash_settled(promises):and_then(function(results)
       assert.are.same({
         first = { status = "fulfilled", value = "Resolved" },
         second = { status = "rejected", reason = "Rejected" },
@@ -34,7 +34,7 @@ describe("Promise.hash_settled", function()
       end),
     }
 
-    Promise.hash_settled(promises):thenCall(function(results)
+    Promise.hash_settled(promises):and_then(function(results)
       assert.are.same({
         first = { status = "fulfilled", value = { nested = "Nested Resolved" } },
         second = { status = "fulfilled", value = "Resolved" },
@@ -51,7 +51,7 @@ describe("Promise.hash_settled", function()
       end),
     }
 
-    Promise.hash_settled(promises):thenCall(function(results)
+    Promise.hash_settled(promises):and_then(function(results)
       assert.are.same({
         first = { status = "fulfilled", value = "Immediate Value" },
         second = { status = "fulfilled", value = "Resolved" },
@@ -61,7 +61,7 @@ describe("Promise.hash_settled", function()
   end)
 
   async_it("handles an empty table correctly", function(done)
-    Promise.hash_settled({}):thenCall(function(results)
+    Promise.hash_settled({}):and_then(function(results)
       assert.are.same({}, results)
       done()
     end)
@@ -79,7 +79,7 @@ describe("Promise.hash_settled", function()
       end),
     }
 
-    Promise.hash_settled(promises):thenCall(function(results)
+    Promise.hash_settled(promises):and_then(function(results)
       assert.are.same({
         first = { status = "fulfilled", value = { nested = { status = "rejected", reason = "Nested Rejection" } } },
         second = { status = "fulfilled", value = "Resolved" },

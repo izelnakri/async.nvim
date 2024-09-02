@@ -12,7 +12,7 @@ describe("2.2.2: If `onRejected` is a function,", function()
     "2.2.2.1: it must be called after `promise` is rejected, with `promise`’s rejection reason as its first argument.",
     function()
       Helper.test_rejected(async_it, sentinel, function(promise, done)
-        promise:thenCall(nil, function(value)
+        promise:and_then(nil, function(value)
           assert.are.equals(value, sentinel)
           done()
         end)
@@ -25,7 +25,7 @@ describe("2.2.2: If `onRejected` is a function,", function()
       local promise, _, reject = Promise.with_resolvers()
       local rejection = spy.new(function() end)
 
-      promise:thenCall(nil, rejection)
+      promise:and_then(nil, rejection)
 
       Timers.set_timeout(function()
         reject(dummy)
@@ -41,7 +41,7 @@ describe("2.2.2: If `onRejected` is a function,", function()
       local promise = Promise:new(function() end)
       local rejection = spy.new(function() end)
 
-      promise:thenCall(nil, rejection)
+      promise:and_then(nil, rejection)
 
       Timers.set_timeout(function()
         assert.spy(rejection).was_not_called()
@@ -53,7 +53,7 @@ describe("2.2.2: If `onRejected` is a function,", function()
   describe("2.2.3.3: it must not be called more than once.", function()
     async_it("already-rejected", function(done)
       local callback = spy.new(function() end)
-      Promise.reject(dummy):thenCall(nil, callback)
+      Promise.reject(dummy):and_then(nil, callback)
 
       Timers.set_timeout(function()
         assert.spy(callback).was_called(1)
@@ -65,7 +65,7 @@ describe("2.2.2: If `onRejected` is a function,", function()
       local promise, _, reject = Promise.with_resolvers()
       local callback = spy.new(function() end)
 
-      promise:thenCall(nil, callback)
+      promise:and_then(nil, callback)
 
       reject(dummy)
       reject(dummy)
@@ -80,7 +80,7 @@ describe("2.2.2: If `onRejected` is a function,", function()
       local promise, _, reject = Promise.with_resolvers()
       local callback = spy.new(function() end)
 
-      promise:thenCall(nil, callback)
+      promise:and_then(nil, callback)
 
       Timers.set_timeout(function()
         reject(dummy)
@@ -97,7 +97,7 @@ describe("2.2.2: If `onRejected` is a function,", function()
       local promise, _, reject = Promise.with_resolvers()
 
       local callback = spy.new(function() end)
-      promise:thenCall(nil, callback)
+      promise:and_then(nil, callback)
 
       reject(dummy)
 
@@ -118,14 +118,14 @@ describe("2.2.2: If `onRejected` is a function,", function()
       local callback_2 = spy.new(function() end)
       local callback_3 = spy.new(function() end)
 
-      promise:thenCall(nil, callback_1)
+      promise:and_then(nil, callback_1)
 
       Timers.set_timeout(function()
-        promise:thenCall(nil, callback_2)
+        promise:and_then(nil, callback_2)
       end, 50)
 
       Timers.set_timeout(function()
-        promise:thenCall(nil, callback_3)
+        promise:and_then(nil, callback_3)
       end, 100)
 
       Timers.set_timeout(function()
@@ -145,9 +145,9 @@ describe("2.2.2: If `onRejected` is a function,", function()
       local callback_1 = spy.new(function() end)
       local callback_2 = spy.new(function() end)
 
-      promise:thenCall(nil, callback_1)
+      promise:and_then(nil, callback_1)
       reject(dummy)
-      promise:thenCall(nil, callback_2)
+      promise:and_then(nil, callback_2)
 
       Timers.set_timeout(function()
         assert.spy(callback_1).was_called(1)

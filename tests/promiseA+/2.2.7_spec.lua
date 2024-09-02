@@ -11,10 +11,10 @@ local other = { other = "other" } -- a value we don't want to be strict equal to
 describe("2.2.7: `next` must return a promise: `promise2 = promise1:next(onFulfilled, onRejected)`", function()
   it("is a promise", function()
     local promise1 = Promise:new(function() end)
-    local promise2 = promise1:thenCall()
+    local promise2 = promise1:and_then()
 
     assert.are.same(type(promise2), "table")
-    assert.are.same(type(promise2.thenCall), "function")
+    assert.are.same(type(promise2.and_then), "function")
   end)
 
   describe(
@@ -30,23 +30,23 @@ describe("2.2.7: `next` must return a promise: `promise2 = promise1:next(onFulfi
       local function testReason(expectedReason, stringRepresentation)
         describe("The reason is " .. stringRepresentation, function()
           Helper.test_fulfilled(async_it, dummy, function(promise1, done)
-            local promise2 = promise1:thenCall(function()
+            local promise2 = promise1:and_then(function()
               error(expectedReason)
             end)
 
-            promise2:thenCall(nil, function(actualReason)
+            promise2:and_then(nil, function(actualReason)
               assert.are.equals(actualReason, expectedReason)
               done()
             end)
           end)
 
           Helper.test_rejected(async_it, dummy, function(promise1, done)
-            local promise2 = promise1:thenCall(nil, function()
+            local promise2 = promise1:and_then(nil, function()
               error(expectedReason)
             end)
 
             promise2
-              :thenCall(nil, function(actualReason)
+              :and_then(nil, function(actualReason)
                 assert.are.equals(actualReason, expectedReason)
                 done()
               end)
@@ -69,10 +69,10 @@ describe(
       describe("`onFulfilled` is " .. stringRepresentation, function()
         Helper.test_fulfilled(async_it, sentinel, function(promise1, done)
           Timers.set_timeout(function()
-            local promise2 = promise1:thenCall(nonFunction)
+            local promise2 = promise1:and_then(nonFunction)
 
             promise2
-              :thenCall(function(value)
+              :and_then(function(value)
                 assert.are.equals(value, sentinel)
                 done()
               end)
@@ -100,9 +100,9 @@ describe(
     local function testNonFunction(nonFunction, stringRepresentation)
       describe("`onRejected` is " .. stringRepresentation, function()
         Helper.test_rejected(async_it, sentinel, function(promise1, done)
-          local promise2 = promise1:thenCall(nil, nonFunction)
+          local promise2 = promise1:and_then(nil, nonFunction)
 
-          promise2:thenCall(nil, function(reason)
+          promise2:and_then(nil, function(reason)
             assert.are.equals(reason, sentinel)
             done()
           end)

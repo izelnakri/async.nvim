@@ -1,10 +1,10 @@
 local function settleNestedPromises(value)
   local Promise = require("promise")
 
-  if type(value) == "table" and type(value.thenCall) == "function" then
+  if type(value) == "table" and type(value.and_then) == "function" then
     -- Handle promise-like objects
     return value
-      :thenCall(function(resolvedValue)
+      :and_then(function(resolvedValue)
         return settleNestedPromises(resolvedValue)
       end)
       :catch(function(reason)
@@ -19,7 +19,7 @@ local function settleNestedPromises(value)
       table.insert(promises, settleNestedPromises(v))
     end
 
-    return Promise.all(promises):thenCall(function(resolvedValues)
+    return Promise.all(promises):and_then(function(resolvedValues)
       local settledTable = {}
       for i, key in ipairs(keys) do
         settledTable[key] = resolvedValues[i]
@@ -43,7 +43,7 @@ return function(hashTable)
       remaining = remaining + 1
 
       settleNestedPromises(promise)
-        :thenCall(function(resolvedValue)
+        :and_then(function(resolvedValue)
           if resolvedValue.status == "fulfilled" or resolvedValue.status == "rejected" then
             results[key] = resolvedValue
           else
