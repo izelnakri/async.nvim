@@ -1,7 +1,7 @@
 require("async.test")
 
 local Callback = require("callback")
-local Timers = require("callback.utils.timers")
+local Timers = require("timers")
 
 describe("Callback.all", function()
   async_it("works with timeout", function()

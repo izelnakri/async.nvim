@@ -2,6 +2,7 @@ require("async.test")
 
 local Callback = require("callback")
 local List = require("callback.utils.list")
+local Object = require("callback.utils.object")
 local null = require("callback.types.null")
 local Timers = require("timers")
 local deep_equal = require("tests.utils.deep_equal")

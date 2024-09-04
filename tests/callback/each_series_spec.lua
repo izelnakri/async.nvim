@@ -1,4 +1,4 @@
-local Timers = require("callback.utils.timers")
+local Timers = require("timers")
 local Callback = require("callback")
 local deep_equal = require("tests.utils.deep_equal")
 local wait = require("tests.utils.wait")

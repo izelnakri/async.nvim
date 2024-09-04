@@ -1,3 +1,5 @@
+local assert = require("busted").assert
+
 return function(left, right)
   assert.are.equal(#left, #right)
 

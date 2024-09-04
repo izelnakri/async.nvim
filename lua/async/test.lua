@@ -82,7 +82,9 @@ _G.async_it = function(title, func)
   index = index + 1
   -- local local_index = index
   local found_error
-  return it(title, function(...)
+  local target_it = _G.it or require("busted").it
+
+  return target_it(title, function(...)
     local is_done = false -- Local to each async_it run
 
     local function done_callback(err)
