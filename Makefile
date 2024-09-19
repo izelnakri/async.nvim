@@ -8,4 +8,6 @@ fmt:
 
 test:
 	echo "===> Testing"
-	nvim --headless -c "PlenaryBustedDirectory tests/"
+	nvim -l ./scripts/busted.lua tests/
+	# nvim --headless -c "PlenaryBustedDirectory tests/"
+

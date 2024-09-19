@@ -1,5 +1,6 @@
 -- NOTE: This magic does shim vim.uv functions properly to be test safe:
 -- Unfortunately, 'vim.uv' itself does not provide a built-in mechanism to globally intercept or handle errors in callbacks
+
 local function wrap_all_uv_functions()
   for name, func in pairs(vim.uv) do
     if type(func) == "function" then
@@ -9,13 +10,10 @@ local function wrap_all_uv_functions()
 
         if type(callback) == "function" then
           args[#args] = function(err, ...)
-            if err then
-              done(err)
-            else
-              local ok, wrapped_err = pcall(callback, err, ...)
-              if not ok then
-                done(wrapped_err)
-              end
+            -- Always wrap the callback in pcall to catch any errors within it
+            local ok, wrapped_err = pcall(callback, err, ...)
+            if not ok then
+              _G.done(wrapped_err)
             end
           end
         end
@@ -25,19 +23,19 @@ local function wrap_all_uv_functions()
     end
   end
 
-  -- Wrap vim.schedule to catch exceptions on test
+  -- Wrap vim.schedule to catch exceptions in tests
   local original_schedule = vim.schedule
   vim.schedule = function(callback)
     original_schedule(function()
       local ok, err = pcall(callback)
       if not ok then
-        done(err)
+        _G.done(err)
       end
     end)
   end
 end
 
-wrap_all_uv_functions() -- Call this function at the beginning of your test file or setup
+wrap_all_uv_functions() -- Initialize the wrapper
 
 local log = function(token, status, err)
   vim.print(token .. " ok is:")
@@ -61,16 +59,15 @@ local finalize_coroutine = function(target_coroutine, optional_error)
   if status == "dead" then
     return true
   else
-    coroutine.resume(target_coroutine.co) -- NOTE: Change from this below:
-
+    coroutine.resume(target_coroutine.co)
     target_coroutine.done_callback(optional_error)
   end
 end
 
-_G.done = function(optional_error) -- optional_error param essential for shimming vim.uv exception catching
+_G.done = function(optional_error) -- essential for shimming vim.uv exception catching
   coroutine_index = coroutine_index + 1
   if coroutine_index > #coroutine_queue then
-    return error("You are calling done() on a test but it gets called more than async_it tests")
+    return error("You are calling done() more than the number of async_it tests")
   end
 
   finalize_coroutine(coroutine_queue[coroutine_index], optional_error)
@@ -80,7 +77,6 @@ local index = 0
 
 _G.async_it = function(title, func)
   index = index + 1
-  -- local local_index = index
   local found_error
   local target_it = _G.it or require("busted").it
 
@@ -107,19 +103,16 @@ _G.async_it = function(title, func)
     local args = { ... }
     local co = coroutine.create(function()
       wrapped_func(unpack(args))
-
       coroutine.yield()
     end)
-
     table.insert(coroutine_queue, { co = co, done_callback = done_callback })
-    coroutine.resume(co) -- NOTE: Changed from the thing below:
+    coroutine.resume(co)
 
     if is_done and found_error then
       error(found_error)
     end
 
     while not is_done do
-      -- vim.print("still not done?:" .. local_index)
       vim.wait(10) -- Small wait to prevent a busy loop
       if found_error then
         error(found_error)
@@ -128,4 +121,4 @@ _G.async_it = function(title, func)
   end)
 end
 
-return { async_it = async_it, done = done }
+return { async_it = _G.async_it, done = _G.done }
