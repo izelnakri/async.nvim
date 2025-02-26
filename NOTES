@@ -56,3 +56,243 @@ them, resorting to existing methods here with a distributed store like RabbitMQ 
 
 Promise(function(resolve, reject)) -> **reject function could also be a callback shaped?**, whereas reject(nil) calls resolve and reject(false) cancelles and reject(nil, smt) resolves smt?
 resolve function could be a curry of `function(val) return callback(nil, val) end`
+
+
+-- coroutine.type file contents were:
+
+-- local success, value = coroutine
+
+-- local promise =
+-- promise.then
+-- promise.
+
+-- err | nil | false, value
+
+-- resolve,  reject
+
+-- callback(err, value) is a then(() => err, () => value)
+
+Promise(function(resolve, reject)
+  -- resolve() -> coroutine.yield()
+  --
+  -- reject() -> coroutine.yield()
+end)
+"Promise" is different than a lua coroutine because coroutine cannot be restarted by suspended.
+Promise can have a coroutine reference, 
+
+
+
+in lua there is isRunning(which is good)
+isDead / -> is it isLoaded
+
+isStarted = false;
+isLoading = false; -- isRunning might be better than isLoading, isLoading is confusing to me.
+isLoaded = false; -- isDead in lua, can you restart a dead coroutine in lua?
+isError = false;
+isAborted = false;
+
+isFulfilled == isDead 
+
+isSuspended -- this would be not dead but loaded promise
+
+isSuccess -- this refers to dead or suspended promise?
+
+lastValue -- last returned/resumed value
+
+class coroutine {
+  // status, lastValue(?), isRunning, what is isyieldable(returns true/false), running returns the coroutine?
+  static create(Function): coroutine
+
+  static status(coroutine): "suspended" | "running" | "dead" -- it starts in suspended state
+  static resume(coroutine, value, value): status, value  -- changes status from suspended to running and maybe dead. 
+  // Passes the values to the initFunc of coroutine.create(initFunc)
+
+  static wrap(function): function -- which resumes the coroutine(that returns the co), throws error // ??
+  static isyieldable() // ??
+  static running() // ??
+
+
+  static yield(value, value) -- suspends the coroutine(finds itself) does it turn to suspended or running?
+}
+
+JSError is
+
+false, error_object = pcall(error({ message = "", code: any }))
+
+// Promise can be inside a coroutine instance it seems, 
+// does the current implementations, implement this?
+
+// How does JS Generators plays with JS promises? -> Check also ember-concurrency
+
+
+// Lua needs distributed process/coroutine table to have Elixir interop, current coroutines are local but could be sent*?
+
+
+   producer = coroutine.create(
+      function ()
+        while true do
+        local x = io.read()     -- produce new value
+          send(x)
+        end
+      end)
+
+
+// promise.resolve() is like a continuous coroutine:resume() until coroutine is "dead" ? or should it be one coroutine:resume() call?
+
+
+  local status, value = coroutine.resume(prod)
+  // value is coroutine.yield(x)
+
+// table.getn(a)
+
+
+-- promise.type file contents were:
+
+Probably call it Future not Promise dependening of symetry between Future and Promise api -> Probably 
+Promise is better
+
+Coroutine -> suspendable function, can be scheduled. Once dead no restart
+Promise -> Most basic asyncronous primitive, it is a Factory. Promise is a Cell with .current -> .lastValue
+
+Coroutine is a fiber?
+
+Task -> Supervisable Future, can be sent across nodes has `pid`, `ref`, `owner`(is a pid) ignoring() means it cant be resumed() again
+
+Supervisor -> A task that watches/restarts other tasks
+
+// abort triggers finally
+
+// Can have intermediate state like loading, aborted, settled(?), maybe do restart(?)
+class Promise {
+  // add static await() and static await_many and resume() resume_many() with can be a wrapper of coroutine.resume
+
+  static new(func: Function(resolve, reject)): Promise,
+
+  static resolve(): Promise,
+
+  static reject(): Promise,
+
+  static all(): Promise,
+
+  static allSettled(): Promise,
+
+  static race(): Promise,
+
+  static withResolvers(): { promise, reject, resolve } // this is like defer
+
+  //.promise -> should refer to itself -> maybe also .coroutine
+  resolve(),
+
+  reject(),
+
+  then()
+
+  catch()
+
+  finally() // ???
+
+  abort(reason?: String): AbortSignal
+
+  // a promise can have events lined up? How to access these array of events and set them correctly
+
+  // should have reload(), isStarted, isLoading, isLoaded, isError, isAborted, maybe: debug
+}
+
+class AbortController {
+  get signal: AbortSignal
+
+  abort(reason?: String): AbortSignal
+}
+
+fetch(url, { signal: controller.signal })
+
+
+// NOTE: very interesting:
+const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+
+class AbortSignal {
+  static timeout(timeoutInMs)
+
+  aborted: boolean
+  reason?: string
+  // onabort
+
+  abort()
+
+  any() 
+
+  timeout() // ?
+
+  throwIfAborted()
+}
+
+// thus promise should have a way to get its controller either via promise.signal.controller or promise.controller from promise.signal
+
+// signal.addEventListener("abort", () => {
+  // Stop the main operation
+  // Reject the promise with the abort reason.
+  reject(signal.reason);
+// });
+
+// Error has name, message in JS, in lua? also optional cause(any type, smt { code: string, values: [] }), columnNumber, fileName, lineNumber, stack
+
+// Does finally() catch all the catch() stuff? because thats where abort() calls
+
+function myCoolPromiseAPI(/* …, */ { signal }) {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(signal.reason);
+    }
+
+    signal.addEventListener("abort", () => {
+      reject(signal.reason);
+    });
+  });
+}
+
+abort() creates AbortError by default
+
+
+--- coroutine producer/filter/consumer pattern:
+
+-- function receive(prod)
+--   local status, value = coroutine.resume(prod)
+--   return value
+-- end
+--
+-- function send(x)
+--   coroutine.yield(x)
+-- end
+--
+-- function producer(data)
+--   return coroutine.create(function()
+--     while true do
+--       -- local x = io.read() -- produce new value
+--       send(data)
+--     end
+--   end)
+-- end
+--
+-- function filter(prod)
+--   return coroutine.create(function()
+--     -- local line = 1
+--     while true do
+--       local x = receive(prod) -- get new value
+--       -- x = string.format("%5d %s", line, x)
+--       send(x) -- send it to consumer
+--       -- line = line + 1
+--     end
+--   end)
+-- end
+--
+-- function consumer(prod)
+--   while true do
+--     local x = receive(prod) -- get new value
+--     -- print(x)
+--     io.write(x, "\n") -- consume new value
+--   end
+-- end
+
+-- consumer(filter(producer("izzy")))
+
+-- Whats the difference between io.write and print()?

@@ -1,0 +1,46 @@
+Maybe I should make Callback methods work with promises *as much as they can* instead of creating Promise functions for each Callback method
+Because then I could combine them, or maybe make them intentionally separate and them make them interchangable for Async module?
+
+#
+# Start promisifying from Callback.run
+
+- Implement hash, hash_settled, parallel_settled, parallel_limit_settled, series_settled
+- Implement these for iterator cases
+- Implement advanced Promise abstraction
+- Implement methods with Promise abstraction
+- Implement Async module methods with all these methods
+- Implement OperationOptions optional parameter to all methods that has timeout etc
+
+-- NOTE: all_settled, hash, hashSettled(?) because parallel early runs result callback
+
+Maybe add build_iterator
+
+-- Async{}(subclass of Promise) Promise{} <JSPromise>, RSVP.Promise
+
+- Check how to add examples in docs
+- Make functions return a promise/like object for then/catchable, cancellable, awaitable, retriable(?)
+-> resolve(), reject(), abort()?
+
+-- NOTE: It doesnt show the metadata, *duration* of the operations
+
+Replace index and value positions in callbacks (after optimizations)
+- add iterator support to tests
+
+busted has async/done global funcs, plenary doesnt have them
+
+busted array, checks the holes in them, check #array
+
+There is no delete operator in lua? I found only table.remove
+
+-- Maybe wrap my waiters in coroutine
+-- For coroutine reference:
+
+local co = coroutine.running() --> is it like Promise::new() ?
+vim.defer_fn(function()
+  coroutine.resume(co) --> is it like Promise.resolve(promise) ?
+end, 1000)
+--The test will reach here immediately.
+coroutine.yield() --> is it like await promise ?
+--The test will only reach here after one second, when the deferred function runs.
+
+* There is Promise and LazyPromise, check also AbortController and my LazyPromise examples to see how much it differs from Promise

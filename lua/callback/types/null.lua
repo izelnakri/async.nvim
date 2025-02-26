@@ -1,3 +1,4 @@
+-- NOTE: Move this to "async.types" namespace
 obj = {}
 
 null = setmetatable(obj, {

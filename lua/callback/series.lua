@@ -1,3 +1,4 @@
+-- NOTE: Maybe make this collect all errors, since waterfall can do erroring to result callback
 local each_limit = require("callback.internal.each_limit")
 local get_tasks_type = require("callback.utils.get_tasks_type")
 local null = require("callback.types.null")
